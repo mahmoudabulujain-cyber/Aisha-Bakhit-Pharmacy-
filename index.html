@@ -63,6 +63,12 @@ body.auth .login{display:flex}body.auth .win,body.auth #backdrop,body.auth .side
 #lgMsg{font-size:12px;color:var(--err);min-height:34px;margin:10px 4px 0;line-height:1.4}
 .lband{background:var(--band);padding:16px 22px 22px}.lband button{width:100%;border-radius:30px;font-size:16px;border:2px solid var(--line)}
 #lgBtn{background:var(--btn);padding:15px;font-weight:700}#lgForgot{background:var(--field);padding:13px;font-weight:500;margin-top:10px;font-size:14px}
+.pw{position:relative}.pw .fld{padding-right:54px}
+.eye{position:absolute;right:6px;top:6px;width:38px;height:38px;border:0;background:transparent;font-size:18px;border-radius:50%;padding:0}
+.err{font-size:12px;color:var(--err);min-height:18px;margin:8px 4px 10px;line-height:1.4}
+.code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:24px;letter-spacing:2px;text-align:center;background:var(--field);border-radius:16px;padding:16px 8px;margin:6px 0 14px;user-select:all;-webkit-user-select:all}
+.acts2{display:flex;gap:8px;margin-top:6px}.acts2 .pillbtn{padding:13px;font-size:14px}.alt{background:var(--field)!important}
+dialog .lf:first-of-type{margin-top:4px}
 </style>
 </head>
 <body class="auth">
@@ -72,7 +78,7 @@ body.auth .login{display:flex}body.auth .win,body.auth #backdrop,body.auth .side
   <div class="lrow"><button class="ic themeBtn" type="button" aria-label="Switch light and dark mode">☾</button><div class="llogo"><img src="icon-192.png" alt="Pharmacy logo"></div></div>
   <div class="lhead"><b>Aisha Bakhit Pharmacy</b><small>mahmoud abu eyad</small></div>
   <div class="lf"><label for="lgUser">Username</label><input class="fld" id="lgUser" type="text" autocomplete="username" autocapitalize="none" spellcheck="false"></div>
-  <div class="lf"><label for="lgPass">Password</label><input class="fld" id="lgPass" type="password" autocomplete="current-password"></div>
+  <div class="lf"><label for="lgPass">Password</label><div class="pw"><input class="fld" id="lgPass" type="password" autocomplete="current-password" autocapitalize="none" spellcheck="false"><button class="eye" id="lgEye" type="button" aria-label="Show password">👁</button></div></div>
   <p id="lgMsg" role="alert"></p>
  </div>
  <div class="lband"><button id="lgBtn" type="button">Sign in</button><button id="lgForgot" type="button">Forgot password?</button></div>
@@ -110,8 +116,21 @@ body.auth .login{display:flex}body.auth .win,body.auth #backdrop,body.auth .side
 <div class="pop" id="setPanel" hidden>
  <div class="sg"><small>Signed in as</small><b id="who"></b></div>
  <div class="sg row"><span>Dark mode</span><button class="sw" id="darkSw" type="button" role="switch" aria-checked="false" aria-label="Dark mode"><i></i></button></div>
+ <button class="pillbtn alt" id="recBtn" type="button" style="margin-bottom:8px">Recovery code</button>
  <button class="pillbtn" id="signOut" type="button">Sign out</button>
 </div>
+<dialog id="resetDialog"><div class="modal"><h2>RESET PASSWORD</h2>
+ <div class="lf"><label for="rsUser">Username</label><input class="fld" id="rsUser" type="text" autocapitalize="none" spellcheck="false"></div>
+ <div class="lf"><label for="rsCode">Recovery code</label><input class="fld" id="rsCode" type="text" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX"></div>
+ <div class="lf"><label for="rsPass">New password</label><div class="pw"><input class="fld" id="rsPass" type="password" autocapitalize="none" spellcheck="false"><button class="eye" id="rsEye" type="button" aria-label="Show password">👁</button></div></div>
+ <p class="err" id="rsMsg" role="alert"></p>
+ <div class="acts2"><button class="pillbtn alt" id="rsCancel" type="button">Cancel</button><button class="pillbtn" id="rsOk" type="button">Reset</button></div>
+</div></dialog>
+<dialog id="codeDialog"><div class="modal"><h2 id="codeTitle">RECOVERY CODE</h2>
+ <div class="code" id="codeText"></div>
+ <p>Write it down or take a screenshot now. It is shown only once, and it is the only way to reset the owner password without losing data.</p>
+ <div class="acts2"><button class="pillbtn alt" id="codeCopy" type="button">Copy</button><button class="pillbtn" id="codeOk" type="button">I saved it</button></div>
+</div></dialog>
 <dialog id="noticeDialog"><div class="modal"><h2 id="noticeTitle"></h2><p id="noticeText"></p><button class="pillbtn" id="noticeOk" type="button">OK</button></div></dialog>
 
 <script>
@@ -243,7 +262,16 @@ async function hashPw(pw,saltHex){
  return hex(await crypto.subtle.deriveBits({name:'PBKDF2',salt,iterations:100000,hash:'SHA-256'},key,256));
 }
 const lgMsg=t=>{$('lgMsg').textContent=t};
-function showLogin(){closeAll();$('lgUser').value='';$('lgPass').value='';lgMsg(users.length?'':'First time here: the username and password you enter will create the owner account.');$('lgBtn').textContent=users.length?'Sign in':'Create owner account';document.body.classList.add('auth')}
+const normCode=c=>String(c||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+function newCode(){const A='23456789ABCDEFGHJKMNPQRSTUVWXYZ',r=crypto.getRandomValues(new Uint8Array(12));let s='';r.forEach((v,i)=>{s+=A[v%A.length];if(i%4===3&&i<11)s+='-'});return s}
+async function setRecovery(u){const code=newCode();u.recSalt=hex(crypto.getRandomValues(new Uint8Array(16)));u.recHash=await hashPw(normCode(code),u.recSalt);return code}
+const saveUser=u=>new Promise((res,rej)=>{const tx=DB.transaction('users','readwrite');tx.objectStore('users').put(u);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});
+function showCode(code,title){$('codeTitle').textContent=title||'RECOVERY CODE';$('codeText').textContent=code;$('codeCopy').textContent='Copy';$('codeDialog').showModal()}
+$('codeOk').onclick=()=>{$('codeDialog').close();$('codeText').textContent=''};
+$('codeCopy').onclick=async()=>{try{await navigator.clipboard.writeText($('codeText').textContent);$('codeCopy').textContent='Copied'}catch(e){$('codeCopy').textContent='Select and copy'}};
+function wireEye(b,i){b.onclick=()=>{const s=i.type==='password';i.type=s?'text':'password';b.textContent=s?'🙈':'👁';b.setAttribute('aria-label',s?'Hide password':'Show password')}}
+wireEye($('lgEye'),$('lgPass'));wireEye($('rsEye'),$('rsPass'));
+function showLogin(){closeAll();$('lgUser').value='';$('lgPass').value='';$('lgPass').type='password';$('lgEye').textContent='👁';lgMsg(users.length?'':'First time here: the username and password you enter will create the owner account.');$('lgBtn').textContent=users.length?'Sign in':'Create owner account';document.body.classList.add('auth')}
 function enterApp(u){currentUser=u;try{sessionStorage.setItem('ab_user',u.username)}catch(e){}$('who').textContent=u.name;closeAll();document.body.classList.remove('auth')}
 $('lgBtn').onclick=async()=>{
  if(!authReady){lgMsg('Loading… try again in a moment.');return}
@@ -257,8 +285,9 @@ $('lgBtn').onclick=async()=>{
    if(pw.length<4){lgMsg('Password must be at least 4 characters.');return}
    const salt=hex(crypto.getRandomValues(new Uint8Array(16)));
    const u={username:un,name:$('lgUser').value.trim(),salt,hash:await hashPw(pw,salt),role:'owner',created:new Date().toISOString()};
+   const rcode=await setRecovery(u);
    await new Promise((res,rej)=>{const tx=DB.transaction('users','readwrite');tx.objectStore('users').put(u);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});
-   users.push(u);enterApp(u);
+   users.push(u);enterApp(u);showCode(rcode,'SAVE YOUR RECOVERY CODE');
   }else{
    const u=users.find(x=>x.username===un);
    if(!u||await hashPw(pw,u.salt)!==u.hash){lgMsg('Wrong username or password.');return}
@@ -268,7 +297,31 @@ $('lgBtn').onclick=async()=>{
  finally{$('lgBtn').disabled=false}
 };
 $('lgPass').addEventListener('keydown',e=>{if(e.key==='Enter')$('lgBtn').click()});
-$('lgForgot').onclick=()=>notice('FORGOT PASSWORD',users.length?'Password reset is not available yet. It will arrive with the Users screen and online accounts.':'No account exists yet. Type a username and a password, then tap Create owner account.');
+$('lgForgot').onclick=()=>{
+ if(!users.length){notice('FORGOT PASSWORD','No account exists yet. Type a username and a password, then tap Create owner account.');return}
+ $('rsUser').value=$('lgUser').value;$('rsCode').value='';$('rsPass').value='';$('rsPass').type='password';$('rsEye').textContent='👁';$('rsMsg').textContent='';$('resetDialog').showModal()};
+$('rsCancel').onclick=()=>$('resetDialog').close();
+$('rsOk').onclick=async()=>{
+ const m=x=>{$('rsMsg').textContent=x},un=$('rsUser').value.trim().toLowerCase(),code=normCode($('rsCode').value),pw=$('rsPass').value;
+ if(!un||!code||!pw){m('Fill in the username, recovery code and new password.');return}
+ if(pw.length<4){m('New password must be at least 4 characters.');return}
+ if(!window.crypto||!crypto.subtle){m('Secure mode is not available. Open the app from its https address.');return}
+ $('rsOk').disabled=true;
+ try{
+  const u=users.find(x=>x.username===un);
+  if(u&&!u.recHash){m('No recovery code was created for this account.');return}
+  if(!u||await hashPw(code,u.recSalt)!==u.recHash){m('Username or recovery code is not correct.');return}
+  u.salt=hex(crypto.getRandomValues(new Uint8Array(16)));u.hash=await hashPw(pw,u.salt);
+  const nc=await setRecovery(u);await saveUser(u);
+  $('resetDialog').close();lgMsg('Password changed. Sign in with your new password.');showCode(nc,'NEW RECOVERY CODE');
+ }catch(e){m('Something went wrong. Try again.')}
+ finally{$('rsOk').disabled=false}
+};
+$('recBtn').onclick=async()=>{
+ if(!currentUser)return;
+ if(!confirm('Create a new recovery code? The old one will stop working.'))return;
+ try{const u=currentUser,c=await setRecovery(u);await saveUser(u);closeAll();showCode(c,'NEW RECOVERY CODE')}catch(e){closeAll();notice('ERROR','Could not create a recovery code. Try again.')}
+};
 $('signOut').onclick=()=>{if(cart.size&&!confirm('Sign out and clear the current invoice?'))return;currentUser=null;try{sessionStorage.removeItem('ab_user')}catch(e){}resetInvoice();showLogin()};
 // ---- Start ----
 renderCart();
