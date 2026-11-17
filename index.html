@@ -8,54 +8,97 @@
 <link rel="icon" href="icon-192.png">
 <title>AB POS</title>
 <style>
-:root{--bg:#fff;--card:#fff;--ink:#1E293B;--muted:#718096;--line:#E5EAF0;--head:#17365D;--gold:#C79B52;--navy:#17365D;--inp:#fff;--ok:#EDF7F1;--okt:#17613F;--off:#F2F5F8;--offt:#5D6B7A}
-:root[data-theme=dark]{--bg:#0F1A2B;--card:#16253B;--ink:#E8EEF6;--muted:#93A4BA;--line:#27384F;--head:#E8EEF6;--inp:#0F1A2B;--ok:#143B2A;--okt:#8FE0B4;--off:#1F2F46;--offt:#A9B8CB}
-*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;color:var(--ink);background:var(--bg);padding-bottom:84px}
-header{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5}
-header img{width:42px;height:42px;object-fit:contain;background:#fff;border-radius:8px}header>div{flex:1}h1{font-size:14px;margin:0 0 2px;color:var(--head)}header p{font-size:11px;margin:0;color:var(--gold);font-weight:700;letter-spacing:.5px}
-#theme{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;width:40px;height:40px;font-size:18px}
-main{max-width:620px;margin:auto;padding:10px}.status{display:flex;justify-content:space-between;margin-bottom:8px}
-.pill{font-size:11px;font-weight:700;border-radius:30px;padding:6px 10px;background:var(--ok);color:var(--okt)}.pill.off{background:var(--off);color:var(--offt)}
-.panel{border:1px solid var(--line);background:var(--card);border-radius:14px;padding:12px;margin-bottom:10px}
-h2{font-size:11px;letter-spacing:.5px;color:var(--head);margin:0 0 8px;display:flex;justify-content:space-between;align-items:center}
-input{width:100%;border:1px solid var(--line);background:var(--inp);color:var(--ink);border-radius:10px;padding:12px;font-size:16px;outline:none}input:focus{border-color:var(--gold)}
-#results{max-height:230px;overflow:auto;margin-top:6px}
-.row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 2px;border-bottom:1px solid var(--line)}.row:last-child{border:0}
-.add{cursor:pointer}.add:active{background:var(--off)}
-.name{font-size:13px;font-weight:700;overflow-wrap:anywhere;flex:1}.price{font-size:13px;font-weight:700;color:var(--gold);white-space:nowrap}.empty{text-align:center;color:var(--muted);font-size:12px;padding:16px}
-.plus{width:34px;height:34px;border-radius:50%;border:1px solid var(--gold);color:var(--gold);background:transparent;font-size:20px;line-height:1}
-.qty{display:flex;align-items:center;gap:8px}.qty button{width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:18px}.qty b{min-width:20px;text-align:center;font-size:14px}
-.x{border:0;background:transparent;color:var(--muted);font-size:20px;width:34px;height:34px}
+:root{--bg:#F4F6FB;--card:#fff;--ink:#1B2340;--muted:#6B7490;--line:#E3E8F2;--blue:#1F3F8F;--bt:#1F3F8F;--on:#fff;--gold:#B8862F;--green:#1E8E5A;--soft:#EEF2FB}
+:root[data-theme=dark]{--bg:#0E1426;--card:#172038;--ink:#E8ECF8;--muted:#98A3C2;--line:#26324F;--blue:#3F5BD0;--bt:#B5C4FF;--gold:#E0B25C;--green:#2FB57A;--soft:#1D2845}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;color:var(--ink);background:var(--bg)}
+header{display:flex;align-items:center;gap:10px;padding:10px 14px;position:sticky;top:0;background:var(--bg);z-index:5}
+header img{width:44px;height:44px;object-fit:contain;background:#fff;border-radius:12px;padding:2px}header>div{flex:1}h1{font-size:15px;margin:0 0 2px;color:var(--bt)}header p{font-size:11px;margin:0;color:var(--gold);font-weight:700;letter-spacing:.5px}
+#theme{border:0;background:var(--card);color:var(--ink);border-radius:50%;width:42px;height:42px;font-size:18px}
+main{max-width:620px;margin:auto;padding:4px 14px 20px}
+.pills{display:flex;justify-content:space-between;margin:4px 0 14px}.pill{font-size:11px;font-weight:700;border-radius:30px;padding:6px 12px;background:var(--card);color:var(--green)}.pill.off{color:var(--muted)}
+h2{font-size:12px;letter-spacing:.6px;color:var(--muted);margin:0 0 10px;display:flex;justify-content:space-between;align-items:center}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tile{border:0;background:var(--card);color:var(--ink);border-radius:20px;padding:18px 14px;text-align:left;font-size:15px;font-weight:700;min-height:112px;display:flex;flex-direction:column;justify-content:space-between}
+.tile i{font-style:normal;width:44px;height:44px;border-radius:14px;background:var(--soft);color:var(--bt);display:flex;align-items:center;justify-content:center;font-size:22px}
+.tile small{display:block;font-size:11px;font-weight:400;color:var(--muted);margin-top:2px}
+.tile.main{grid-column:1/3;background:var(--blue);color:#fff;min-height:132px}.tile.main i{background:rgba(255,255,255,.18);color:#fff}.tile.main small{color:#D6DEFA}
+.tile:disabled{opacity:.55}
+.back{border:0;background:var(--card);color:var(--bt);border-radius:30px;padding:10px 16px;font-size:14px;font-weight:700;margin:2px 0 12px}
+.panel{background:var(--card);border-radius:20px;padding:14px;margin-bottom:12px}
+input{width:100%;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:14px;padding:14px;font-size:16px;outline:none}input:focus{border-color:var(--blue)}
+#results{max-height:240px;overflow:auto;margin-top:8px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 2px;border-bottom:1px solid var(--line)}.row:last-child{border:0}
+.name{font-size:14px;font-weight:700;overflow-wrap:anywhere;flex:1}.price{font-size:14px;font-weight:700;color:var(--gold);white-space:nowrap}.empty{text-align:center;color:var(--muted);font-size:13px;padding:16px}
+.plus{width:38px;height:38px;border-radius:50%;border:0;background:var(--blue);color:#fff;font-size:22px;line-height:1}
+.qty{display:flex;align-items:center;gap:8px}.qty button{width:36px;height:36px;border-radius:12px;border:0;background:var(--soft);color:var(--bt);font-size:20px}.qty b{min-width:20px;text-align:center;font-size:15px}
+.x{border:0;background:transparent;color:var(--muted);font-size:22px;width:34px;height:34px}
 #clear{border:0;background:transparent;color:var(--muted);font-size:11px;font-weight:700;padding:4px}
-footer{position:fixed;left:0;right:0;bottom:0;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px calc(10px + env(safe-area-inset-bottom))}
-footer small{display:block;font-size:11px;opacity:.8}footer strong{font-size:20px}
-#pay{background:var(--gold);color:var(--navy);border:0;border-radius:10px;font-weight:700;font-size:15px;padding:12px 28px}
-#msg{position:fixed;left:12px;right:12px;bottom:90px;background:var(--card);color:var(--ink);border:1px solid var(--gold);border-radius:12px;padding:12px;font-size:13px;display:none;z-index:9}
+body.sale{padding-bottom:92px}
+footer{position:fixed;left:0;right:0;bottom:0;background:var(--card);display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));border-radius:22px 22px 0 0;box-shadow:0 -1px 0 var(--line)}
+footer small{display:block;font-size:11px;color:var(--muted)}footer strong{font-size:22px;color:var(--ink)}
+#pay{background:var(--green);color:#fff;border:0;border-radius:16px;font-weight:700;font-size:16px;padding:14px 34px}
+#msg{position:fixed;left:12px;right:12px;bottom:100px;background:var(--card);color:var(--ink);border-radius:14px;padding:12px;font-size:13px;display:none;z-index:9}
+dialog{border:0;border-radius:22px;padding:0;background:var(--card);color:var(--ink);width:min(92vw,420px)}dialog::backdrop{background:rgba(0,0,0,.55)}
+.modal{padding:18px}.modal h2{margin:0 0 12px}.note{font-size:12px;color:var(--muted);margin:8px 0;line-height:1.5}
+.sum{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px}.sum div{background:var(--soft);border-radius:14px;padding:10px 6px;text-align:center}.sum span{display:block;font-size:11px;color:var(--muted)}.sum strong{font-size:15px}
+.lbl{font-size:11px;font-weight:700;color:var(--muted);margin:12px 0 6px}
+.methods{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.methods button{border:0;background:var(--soft);color:var(--bt);border-radius:14px;padding:14px 4px;font-size:13px;font-weight:700}.methods button[aria-pressed=true]{background:var(--blue);color:#fff}
+.acts{display:flex;gap:8px;margin-top:14px}.btn{flex:1;border-radius:14px;padding:14px;font-size:14px;font-weight:700;border:0;background:var(--soft);color:var(--bt)}.btn.p{background:var(--green);color:#fff}
+[hidden]{display:none!important}
 </style>
 </head>
 <body>
 <header><img src="icon-192.png" alt="logo"><div><h1>AISHA BAKHIT DISPENSARY</h1><p>PHARMACY SALES SYSTEM</p></div><button id="theme" type="button" aria-label="Switch light and dark mode">☾</button></header>
 <main>
- <div class="status"><span class="pill" id="status">LOADING…</span><span class="pill" id="net"></span></div>
- <section class="panel"><h2>SEARCH PRODUCTS</h2>
-  <input id="q" type="search" placeholder="Type a product name…" autocomplete="off">
-  <div id="results"><div class="empty">Start typing to search.</div></div>
+ <section id="home">
+  <div class="pills"><span class="pill" id="status">LOADING…</span><span class="pill" id="net"></span></div>
+  <h2>WHAT DO YOU WANT TO DO?</h2>
+  <div class="tiles">
+   <button class="tile main" id="openSale" type="button"><i>＋</i><span>New sale<small>Search products and receive payment</small></span></button>
+   <button class="tile" type="button" disabled><i>▦</i><span>Inventory<small>Coming soon</small></span></button>
+   <button class="tile" type="button" disabled><i>▤</i><span>Reports<small>Coming soon</small></span></button>
+   <button class="tile" type="button" disabled><i>☺</i><span>Users<small>Coming soon</small></span></button>
+   <button class="tile" type="button" disabled><i>⚙</i><span>Settings<small>Coming soon</small></span></button>
+  </div>
  </section>
- <section class="panel"><h2><span id="cartTitle">CART</span><button id="clear" type="button">CLEAR</button></h2><div id="cart"></div></section>
+ <section id="saleView" hidden>
+  <button class="back" id="back" type="button">‹ Home</button>
+  <div class="panel"><h2>SEARCH PRODUCTS</h2>
+   <input id="q" type="search" placeholder="Type a product name…" autocomplete="off">
+   <div id="results"><div class="empty">Start typing to search.</div></div>
+  </div>
+  <div class="panel"><h2><span id="cartTitle">CART</span><button id="clear" type="button">CLEAR</button></h2><div id="cart"></div></div>
+  <footer><div><small>TOTAL</small><strong id="total">0</strong></div><button id="pay" type="button">PAY</button></footer>
+ </section>
 </main>
 <div id="msg"></div>
-<footer><div><small>TOTAL</small><strong id="total">0</strong></div><button id="pay" type="button">PAY</button></footer>
+<dialog id="noticeDialog"><div class="modal"><h2 id="noticeTitle"></h2><p class="note" id="noticeText" style="font-size:14px;color:var(--ink)"></p><div class="acts"><button class="btn p" id="noticeOk" type="button">OK</button></div></div></dialog>
+<dialog id="payDialog"><div class="modal">
+ <h2>RECEIVE PAYMENT</h2>
+ <div class="sum"><div><span>TOTAL</span><strong id="payTotal">0</strong></div><div><span>RECEIVED</span><strong id="payReceived">0</strong></div><div><span>REMAINING</span><strong id="payRemaining">0</strong></div></div>
+ <div class="lbl">AMOUNT RECEIVED</div><input id="payAmount" type="number" min="0" step="any" inputmode="decimal" placeholder="Enter amount">
+ <div class="lbl">PAYMENT METHOD</div>
+ <div class="methods"><button type="button" data-m="CASH" aria-pressed="false">CASH</button><button type="button" data-m="BANKAK" aria-pressed="false">BANKAK</button><button type="button" data-m="O-CASH" aria-pressed="false">O-CASH</button></div>
+ <div id="bankakWrap" style="display:none"><div class="lbl">BANKAK TRANSACTION ID (OPTIONAL)</div><input id="bankakId" type="text" inputmode="numeric" maxlength="4" autocomplete="off" placeholder="4 digits"><p class="note" style="margin-bottom:0">Optional. Enter exactly 4 unique digits, or add it later from the report.</p></div>
+ <p class="note" id="payHint">Enter the amount received and select its payment method.</p>
+ <div class="acts"><button class="btn" id="payClose" type="button">CLOSE</button><button class="btn p" id="payConfirm" type="button">CONFIRM</button></div>
+</div></dialog>
+
 <script>
 const $=id=>document.getElementById(id);
 const money=v=>Number(v||0).toLocaleString('en-US');
+// ---- Navigation ----
+function showView(){const s=location.hash==='#sale';$('home').hidden=s;$('saleView').hidden=!s;document.body.classList.toggle('sale',s);if(s)$('q').focus({preventScroll:true})}
+$('openSale').onclick=()=>{location.hash='sale'};$('back').onclick=()=>{if(location.hash==='#sale')history.back();else showView()};
+addEventListener('hashchange',showView);if(location.hash==='#sale')history.replaceState(null,'',location.pathname);showView();
 // ---- Theme ----
 function setTheme(t){document.documentElement.dataset.theme=t;$('theme').textContent=t==='dark'?'☀':'☾';$('theme').setAttribute('content',t);try{localStorage.setItem('ab_theme',t)}catch(e){}}
 let saved='light';try{saved=localStorage.getItem('ab_theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch(e){}
 setTheme(saved);$('theme').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
 // ---- Database (IndexedDB) ----
 function openDB(){return new Promise((res,rej)=>{
- const r=indexedDB.open('ab_pos',1);
- r.onupgradeneeded=()=>{const d=r.result;d.createObjectStore('products',{keyPath:'id'});d.createObjectStore('meta',{keyPath:'key'})};
+ const r=indexedDB.open('ab_pos',2);
+ r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains('products'))d.createObjectStore('products',{keyPath:'id'});if(!d.objectStoreNames.contains('meta'))d.createObjectStore('meta',{keyPath:'key'});if(!d.objectStoreNames.contains('sales'))d.createObjectStore('sales',{keyPath:'invoice'})};
  r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
 const req=r=>new Promise((res,rej)=>{r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
 async function seedIfNeeded(db){
@@ -83,8 +126,13 @@ function renderResults(q){
 $('q').addEventListener('input',e=>renderResults(e.target.value));
 // ---- Cart ----
 const cart=new Map();
+let DB=null,sales=[],invoiceNo=1,currentPayments=[],currentBankakId='',selMethod='',lastSig='',saving=false;
+const cartTotal=()=>{let s=0;cart.forEach(l=>{s+=(Number(l.p.price)||0)*l.q});return s};
+function notice(title,text){$('noticeTitle').textContent=title;$('noticeText').textContent=text;$('noticeDialog').showModal()}
+$('noticeOk').onclick=()=>$('noticeDialog').close();
 function addToCart(p){const l=cart.get(p.id);if(l)l.q++;else cart.set(p.id,{p,q:1});renderCart()}
 function renderCart(){
+ const sig=[...cart].map(([i,l])=>i+':'+l.q).join('|');if(sig!==lastSig){currentPayments=[];currentBankakId='';lastSig=sig}
  const box=$('cart');box.innerHTML='';let total=0,count=0;
  cart.forEach(l=>{total+=(Number(l.p.price)||0)*l.q;count+=l.q});
  if(!cart.size)box.innerHTML='<div class="empty">Cart is empty. Tap a product to add it.</div>';
@@ -106,15 +154,52 @@ function renderCart(){
 }
 $('clear').onclick=()=>{if(cart.size&&confirm('Clear the whole cart?')){cart.clear();renderCart()}};
 let msgTimer;function say(t){const m=$('msg');m.textContent=t;m.style.display='block';clearTimeout(msgTimer);msgTimer=setTimeout(()=>m.style.display='none',3500)}
-$('pay').onclick=()=>say(cart.size?'Payment is built in the next step.':'Add products to the cart first.');
+const received=()=>currentPayments.reduce((s,p)=>s+p.amount,0);
+const idUsed=id=>sales.some(s=>String(s.bankakTransactionId||'')===id);
+function payUI(){const tot=cartTotal(),rec=received(),rem=Math.max(0,tot-rec);$('payTotal').textContent=money(tot);$('payReceived').textContent=money(rec);$('payRemaining').textContent=money(rem);$('payAmount').value=rem?String(rem):'';selMethod='';document.querySelectorAll('[data-m]').forEach(b=>b.setAttribute('aria-pressed','false'));$('bankakWrap').style.display='none'}
+function openPay(){payUI();$('bankakId').value=currentBankakId;$('bankakId').disabled=!!currentBankakId;$('payHint').textContent='Enter the amount received and select its payment method.';$('payDialog').showModal()}
+$('pay').onclick=()=>{if(!cart.size){notice('EMPTY INVOICE','Add at least one product before completing the sale.');return}openPay()};
+document.querySelectorAll('[data-m]').forEach(b=>b.addEventListener('click',()=>{selMethod=b.dataset.m;document.querySelectorAll('[data-m]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));$('bankakWrap').style.display=selMethod==='BANKAK'?'block':'none';if(selMethod==='BANKAK'){$('bankakId').value=currentBankakId;$('bankakId').disabled=!!currentBankakId}}));
+$('bankakId').addEventListener('input',e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,4)});
+$('payClose').onclick=()=>$('payDialog').close();
+function resetInvoice(){cart.clear();currentPayments=[];currentBankakId='';selMethod='';$('q').value='';renderResults('');renderCart()}
+function finishSale(){
+ const now=new Date(),invoice='INV-'+String(invoiceNo).padStart(4,'0'),total=cartTotal();
+ const record={invoice,date:now.toLocaleDateString('en-CA'),time:now.toLocaleTimeString('en-GB'),total,paymentMethod:currentPayments.length===1?currentPayments[0].method:'SPLIT',payments:currentPayments.map(p=>({...p})),bankakTransactionId:currentBankakId||'',items:[...cart.values()].map(l=>({id:l.p.id,name:l.p.name,price:Number(l.p.price)||0,qty:l.q,lineTotal:(Number(l.p.price)||0)*l.q}))};
+ saving=true;
+ const fail=()=>{if(!saving)return;saving=false;currentPayments.pop();$('payHint').textContent='The invoice could not be saved. Try CONFIRM again.';payUI()};
+ try{const tx=DB.transaction(['sales','meta'],'readwrite');tx.objectStore('sales').put(record);tx.objectStore('meta').put({key:'invoiceNo',value:invoiceNo+1});
+  tx.oncomplete=()=>{saving=false;sales.push(record);invoiceNo++;resetInvoice();$('payDialog').close();notice('SALE SAVED','Invoice '+invoice+' has been saved.')};
+  tx.onerror=fail;tx.onabort=fail}catch(e){fail()}
+}
+$('payConfirm').onclick=()=>{
+ if(saving)return;
+ const tot=cartTotal(),rem=Math.max(0,tot-received()),raw=$('payAmount').value.trim(),amount=Number(raw),hint=t=>{$('payHint').textContent=t};
+ if(!selMethod){hint('Please select CASH, BANKAK or O-CASH.');return}
+ if(raw===''||!Number.isFinite(amount)||amount<=0){hint('Enter an amount greater than zero.');return}
+ if(amount>rem+0.000001){hint('Amount cannot be greater than the remaining balance.');return}
+ if(selMethod==='BANKAK'){
+  const id=$('bankakId').value.trim();
+  if(id!==''&&!/^\d{4}$/.test(id)){hint('Bankak ID must contain exactly 4 digits, or leave it empty to add later.');return}
+  if(id!==''&&idUsed(id)){hint('This Bankak ID is already used. Enter a unique 4-digit number.');return}
+  if(id!==''&&!currentBankakId){currentBankakId=id;$('bankakId').disabled=true}
+ }
+ currentPayments.push({method:selMethod,amount});
+ const nr=Math.max(0,tot-received());
+ if(nr<=0.000001){finishSale();return}
+ payUI();hint('Payment recorded. Collect the remaining '+money(nr)+' using another method, then CONFIRM.');
+};
 renderCart();
 function net(){const o=navigator.onLine;$('net').textContent=o?'ONLINE':'OFFLINE';$('net').className='pill'+(o?'':' off')}
 addEventListener('online',net);addEventListener('offline',net);net();
 // ---- Start ----
 (async()=>{
  try{
-  const db=await openDB();await seedIfNeeded(db);
+  const db=await openDB();DB=db;await seedIfNeeded(db);
   products=(await req(db.transaction('products').objectStore('products').getAll())).map(p=>({...p,_n:norm(p.name)}));
+  sales=await req(db.transaction('sales').objectStore('sales').getAll());
+  const inv=await req(db.transaction('meta').objectStore('meta').get('invoiceNo'));
+  invoiceNo=Math.max(inv?inv.value:1,...sales.map(s=>(parseInt(String(s.invoice).replace(/\D/g,''),10)||0)+1),1);
   $('status').textContent='READY • '+products.length+' PRODUCTS';
  }catch(e){$('status').textContent='DATABASE ERROR';$('status').className='pill off'}
  if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
