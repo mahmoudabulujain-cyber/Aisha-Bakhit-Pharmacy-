@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#17365D">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<title>AB POS</title>
+<style>
+:root{--bg:#fff;--card:#fff;--ink:#1E293B;--muted:#718096;--line:#E5EAF0;--head:#17365D;--gold:#C79B52;--navy:#17365D;--inp:#fff;--ok:#EDF7F1;--okt:#17613F;--off:#F2F5F8;--offt:#5D6B7A}
+:root[data-theme=dark]{--bg:#0F1A2B;--card:#16253B;--ink:#E8EEF6;--muted:#93A4BA;--line:#27384F;--head:#E8EEF6;--inp:#0F1A2B;--ok:#143B2A;--okt:#8FE0B4;--off:#1F2F46;--offt:#A9B8CB}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;color:var(--ink);background:var(--bg);padding-bottom:84px}
+header{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5}
+header img{width:42px;height:42px;object-fit:contain;background:#fff;border-radius:8px}header>div{flex:1}h1{font-size:14px;margin:0 0 2px;color:var(--head)}header p{font-size:11px;margin:0;color:var(--gold);font-weight:700;letter-spacing:.5px}
+#theme{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;width:40px;height:40px;font-size:18px}
+main{max-width:620px;margin:auto;padding:10px}.status{display:flex;justify-content:space-between;margin-bottom:8px}
+.pill{font-size:11px;font-weight:700;border-radius:30px;padding:6px 10px;background:var(--ok);color:var(--okt)}.pill.off{background:var(--off);color:var(--offt)}
+.panel{border:1px solid var(--line);background:var(--card);border-radius:14px;padding:12px;margin-bottom:10px}
+h2{font-size:11px;letter-spacing:.5px;color:var(--head);margin:0 0 8px;display:flex;justify-content:space-between;align-items:center}
+input{width:100%;border:1px solid var(--line);background:var(--inp);color:var(--ink);border-radius:10px;padding:12px;font-size:16px;outline:none}input:focus{border-color:var(--gold)}
+#results{max-height:230px;overflow:auto;margin-top:6px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 2px;border-bottom:1px solid var(--line)}.row:last-child{border:0}
+.add{cursor:pointer}.add:active{background:var(--off)}
+.name{font-size:13px;font-weight:700;overflow-wrap:anywhere;flex:1}.price{font-size:13px;font-weight:700;color:var(--gold);white-space:nowrap}.empty{text-align:center;color:var(--muted);font-size:12px;padding:16px}
+.plus{width:34px;height:34px;border-radius:50%;border:1px solid var(--gold);color:var(--gold);background:transparent;font-size:20px;line-height:1}
+.qty{display:flex;align-items:center;gap:8px}.qty button{width:34px;height:34px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);font-size:18px}.qty b{min-width:20px;text-align:center;font-size:14px}
+.x{border:0;background:transparent;color:var(--muted);font-size:20px;width:34px;height:34px}
+#clear{border:0;background:transparent;color:var(--muted);font-size:11px;font-weight:700;padding:4px}
+footer{position:fixed;left:0;right:0;bottom:0;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px calc(10px + env(safe-area-inset-bottom))}
+footer small{display:block;font-size:11px;opacity:.8}footer strong{font-size:20px}
+#pay{background:var(--gold);color:var(--navy);border:0;border-radius:10px;font-weight:700;font-size:15px;padding:12px 28px}
+#msg{position:fixed;left:12px;right:12px;bottom:90px;background:var(--card);color:var(--ink);border:1px solid var(--gold);border-radius:12px;padding:12px;font-size:13px;display:none;z-index:9}
+</style>
+</head>
+<body>
+<header><img src="icon-192.png" alt="logo"><div><h1>AISHA BAKHIT DISPENSARY</h1><p>PHARMACY SALES SYSTEM</p></div><button id="theme" type="button" aria-label="Switch light and dark mode">☾</button></header>
+<main>
+ <div class="status"><span class="pill" id="status">LOADING…</span><span class="pill" id="net"></span></div>
+ <section class="panel"><h2>SEARCH PRODUCTS</h2>
+  <input id="q" type="search" placeholder="Type a product name…" autocomplete="off">
+  <div id="results"><div class="empty">Start typing to search.</div></div>
+ </section>
+ <section class="panel"><h2><span id="cartTitle">CART</span><button id="clear" type="button">CLEAR</button></h2><div id="cart"></div></section>
+</main>
+<div id="msg"></div>
+<footer><div><small>TOTAL</small><strong id="total">0</strong></div><button id="pay" type="button">PAY</button></footer>
+<script>
+const $=id=>document.getElementById(id);
+const money=v=>Number(v||0).toLocaleString('en-US');
+// ---- Theme ----
+function setTheme(t){document.documentElement.dataset.theme=t;$('theme').textContent=t==='dark'?'☀':'☾';$('theme').setAttribute('content',t);try{localStorage.setItem('ab_theme',t)}catch(e){}}
+let saved='light';try{saved=localStorage.getItem('ab_theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch(e){}
+setTheme(saved);$('theme').onclick=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
+// ---- Database (IndexedDB) ----
+function openDB(){return new Promise((res,rej)=>{
+ const r=indexedDB.open('ab_pos',1);
+ r.onupgradeneeded=()=>{const d=r.result;d.createObjectStore('products',{keyPath:'id'});d.createObjectStore('meta',{keyPath:'key'})};
+ r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
+const req=r=>new Promise((res,rej)=>{r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+async function seedIfNeeded(db){
+ const seeded=await req(db.transaction('meta').objectStore('meta').get('seeded'));
+ if(seeded)return;
+ const list=await (await fetch('products.json')).json();
+ await new Promise((res,rej)=>{const tx=db.transaction(['products','meta'],'readwrite');
+  list.forEach(p=>tx.objectStore('products').put(p));tx.objectStore('meta').put({key:'seeded',value:true});
+  tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});
+}
+// ---- Search ----
+let products=[];
+const norm=s=>String(s||'').normalize('NFKC').toLowerCase().replace(/[\u064B-\u065F\u0670\u0640]/g,'').replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/\s+/g,' ').trim();
+function renderResults(q){
+ const box=$('results');box.innerHTML='';const t=norm(q);
+ if(!t){box.innerHTML='<div class="empty">Start typing to search.</div>';return}
+ const m=products.filter(p=>p._n.includes(t)).slice(0,60);
+ if(!m.length){box.innerHTML='<div class="empty">No matching products.</div>';return}
+ m.forEach(p=>{const r=document.createElement('div');r.className='row add';
+  const n=document.createElement('div');n.className='name';n.textContent=p.name;
+  const pr=document.createElement('div');pr.className='price';pr.textContent=money(p.price);
+  const b=document.createElement('button');b.className='plus';b.type='button';b.textContent='+';b.setAttribute('aria-label','Add '+p.name);
+  r.append(n,pr,b);r.onclick=()=>addToCart(p);box.appendChild(r)});
+}
+$('q').addEventListener('input',e=>renderResults(e.target.value));
+// ---- Cart ----
+const cart=new Map();
+function addToCart(p){const l=cart.get(p.id);if(l)l.q++;else cart.set(p.id,{p,q:1});renderCart()}
+function renderCart(){
+ const box=$('cart');box.innerHTML='';let total=0,count=0;
+ cart.forEach(l=>{total+=(Number(l.p.price)||0)*l.q;count+=l.q});
+ if(!cart.size)box.innerHTML='<div class="empty">Cart is empty. Tap a product to add it.</div>';
+ cart.forEach((l,id)=>{
+  const r=document.createElement('div');r.className='row';
+  const info=document.createElement('div');info.style.flex='1';
+  const n=document.createElement('div');n.className='name';n.textContent=l.p.name;
+  const s=document.createElement('div');s.className='empty';s.style.cssText='text-align:left;padding:2px 0 0';s.textContent=money(l.p.price)+' × '+l.q+' = '+money((Number(l.p.price)||0)*l.q);
+  info.append(n,s);
+  const q=document.createElement('div');q.className='qty';
+  const m=document.createElement('button');m.type='button';m.textContent='−';m.setAttribute('aria-label','Decrease');
+  const c=document.createElement('b');c.textContent=l.q;
+  const a=document.createElement('button');a.type='button';a.textContent='+';a.setAttribute('aria-label','Increase');
+  m.onclick=()=>{l.q>1?l.q--:cart.delete(id);renderCart()};a.onclick=()=>{l.q++;renderCart()};
+  q.append(m,c,a);
+  const x=document.createElement('button');x.className='x';x.type='button';x.textContent='×';x.setAttribute('aria-label','Remove');x.onclick=()=>{cart.delete(id);renderCart()};
+  r.append(info,q,x);box.appendChild(r)});
+ $('cartTitle').textContent='CART'+(count?' ('+count+')':'');$('total').textContent=money(total);
+}
+$('clear').onclick=()=>{if(cart.size&&confirm('Clear the whole cart?')){cart.clear();renderCart()}};
+let msgTimer;function say(t){const m=$('msg');m.textContent=t;m.style.display='block';clearTimeout(msgTimer);msgTimer=setTimeout(()=>m.style.display='none',3500)}
+$('pay').onclick=()=>say(cart.size?'Payment is built in the next step.':'Add products to the cart first.');
+renderCart();
+function net(){const o=navigator.onLine;$('net').textContent=o?'ONLINE':'OFFLINE';$('net').className='pill'+(o?'':' off')}
+addEventListener('online',net);addEventListener('offline',net);net();
+// ---- Start ----
+(async()=>{
+ try{
+  const db=await openDB();await seedIfNeeded(db);
+  products=(await req(db.transaction('products').objectStore('products').getAll())).map(p=>({...p,_n:norm(p.name)}));
+  $('status').textContent='READY • '+products.length+' PRODUCTS';
+ }catch(e){$('status').textContent='DATABASE ERROR';$('status').className='pill off'}
+ if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+})();
+</script>
+</body>
+</html>
