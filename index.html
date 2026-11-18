@@ -71,6 +71,11 @@ body.auth .login{display:flex;flex-direction:column}.ver{font-size:11px;color:va
 dialog .lf:first-of-type{margin-top:4px}
 .ph{padding:28px 16px;text-align:center;margin-top:0}.ph b{font-size:18px}.ph p{color:var(--mute);font-size:13px;margin:8px 0 0}
 .hint{font-size:11px;color:var(--mute);text-align:center;margin:6px 6px 10px;line-height:1.5}#viewProducts .pillbtn{margin-top:0}#npMsg{min-height:6px;margin:4px 4px 6px}#epBtn{margin-top:4px}.xs{font-size:11px;color:var(--mute);white-space:nowrap}.xs.ok{color:var(--ink);font-weight:700}
+.tr{display:grid;grid-template-columns:1.25fr .7fr 1.1fr 1fr;gap:6px;padding:11px 0;border-bottom:1px solid var(--sep);font-size:13px;align-items:center}.tr:last-child{border:0}.tr span:last-child,.tr b:last-child{text-align:right}
+.th{font-size:11px;color:var(--mute);padding:8px 0 6px;letter-spacing:.3px}.inv{cursor:pointer;border-bottom:1px solid var(--sep)}.inv:last-child{border:0}.inv .tr{border:0}
+.det{padding:0 0 12px;font-size:12px;color:var(--mute);line-height:1.7;cursor:default}.det b{color:var(--ink)}.det .bi{display:flex;gap:8px;margin-top:6px}.det .bi input{flex:1;height:42px;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:0 10px;font-size:15px;min-width:0}.det .bi button{border:0;background:var(--btn);border-radius:12px;padding:0 16px;font-weight:700;font-size:13px}
+.kv{display:flex;justify-content:space-between;padding:7px 0;font-size:14px}.kv span{color:var(--mute)}.kv.t{border-top:1px solid var(--sep);margin-top:4px;padding-top:10px;font-size:16px}.kv.t span{color:var(--ink)}
+#viewReports .pillbtn{margin-top:8px}
 </style>
 </head>
 <body class="auth">
@@ -84,7 +89,7 @@ dialog .lf:first-of-type{margin-top:4px}
   <p id="lgMsg" role="alert"></p>
  </div>
  <div class="lband"><button id="lgBtn" type="button">Sign in</button><button id="lgForgot" type="button">Forgot password?</button></div>
-</div><div class="ver">Version 3.0</div></div>
+</div><div class="ver">Version 3.1</div></div>
 
 <div class="win" id="app">
  <div class="top">
@@ -120,7 +125,14 @@ dialog .lf:first-of-type{margin-top:4px}
   <input type="file" id="xlsFile" accept=".xlsx" hidden>
   <button class="pillbtn alt" id="epBtn" type="button" style="margin-bottom:10px">Edit a product price</button>
  </div></div>
- <div id="viewReports" hidden><div class="bd"><div class="box ph"><b>Reports</b><p>This screen is coming soon.</p></div></div></div>
+ <div id="viewReports" hidden><div class="bd">
+  <div class="box" id="rInfo"></div>
+  <div class="box" id="rTable"></div>
+  <div class="lbl">SHIFT TOTALS</div>
+  <div class="box" id="rTotals"></div>
+  <button class="pillbtn alt" id="rPdf" type="button" style="margin-top:14px">Download PDF</button>
+  <button class="pillbtn" id="rEnd" type="button" style="margin-bottom:10px">End shift</button>
+ </div></div></div>
 </div>
 
 <div id="backdrop" hidden></div>
@@ -186,8 +198,8 @@ $('dot').onclick=()=>{$('connTxt').textContent=navigator.onLine?'Online':'Offlin
 addEventListener('online',net);addEventListener('offline',net);net();
 // ---- Database ----
 function openDB(){return new Promise((res,rej)=>{
- const r=indexedDB.open('ab_pos',4);
- r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains('products'))d.createObjectStore('products',{keyPath:'id'});if(!d.objectStoreNames.contains('meta'))d.createObjectStore('meta',{keyPath:'key'});if(!d.objectStoreNames.contains('sales'))d.createObjectStore('sales',{keyPath:'invoice'});if(!d.objectStoreNames.contains('users'))d.createObjectStore('users',{keyPath:'username'});if(!d.objectStoreNames.contains('audit'))d.createObjectStore('audit',{autoIncrement:true})};
+ const r=indexedDB.open('ab_pos',5);
+ r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains('products'))d.createObjectStore('products',{keyPath:'id'});if(!d.objectStoreNames.contains('meta'))d.createObjectStore('meta',{keyPath:'key'});if(!d.objectStoreNames.contains('sales'))d.createObjectStore('sales',{keyPath:'invoice'});if(!d.objectStoreNames.contains('users'))d.createObjectStore('users',{keyPath:'username'});if(!d.objectStoreNames.contains('audit'))d.createObjectStore('audit',{autoIncrement:true});if(!d.objectStoreNames.contains('shifts'))d.createObjectStore('shifts',{keyPath:'id'})};
  r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
 const req=r=>new Promise((res,rej)=>{r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
 async function seedIfNeeded(db){
@@ -197,6 +209,7 @@ async function seedIfNeeded(db){
   list.forEach(p=>tx.objectStore('products').put(p));tx.objectStore('meta').put({key:'seeded',value:true});
   tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});
 }
+let shift=null,shiftList=[];
 let DB=null,products=[],sales=[],invoiceNo=1,users=[],currentUser=null,authReady=false,saving=false;
 // ---- Search ----
 const norm=s=>String(s||'').normalize('NFKC').toLowerCase().replace(/[\u064B-\u065F\u0670\u0640]/g,'').replace(/[أإآٱ]/g,'ا').replace(/ى/g,'ي').replace(/\s+/g,' ').trim();
@@ -278,11 +291,12 @@ $('pay').onclick=()=>{
   if(bid!==''&&!/^\d{4}$/.test(bid)){msg('Bankak ID must be exactly 4 digits, or leave it empty.');return}
   if(bid!==''&&sales.some(s=>String(s.bankakTransactionId||'')===bid)){msg('This Bankak ID is already used. Enter a unique one.');return}}
  const now=new Date(),invoice='INV-'+String(invoiceNo).padStart(4,'0');
- const record={invoice,date:now.toLocaleDateString('en-CA'),time:now.toLocaleTimeString('en-GB'),total,paymentMethod:used.length===1?used[0]:'SPLIT',payments:used.map(m=>({method:m,amount:pay[m].amount})),bankakTransactionId:bid,cashier:currentUser?currentUser.username:'',items:[...cart.values()].map(l=>({id:l.p.id,name:l.p.name,price:Number(l.p.price)||0,qty:l.q,lineTotal:(Number(l.p.price)||0)*l.q}))};
+ let newShift=null;if(!shift&&currentUser)newShift={id:'S'+Date.now(),startedAt:now.toISOString(),startedBy:currentUser.username,startedByName:currentUser.name,endedAt:null};
+ const record={invoice,date:now.toLocaleDateString('en-CA'),time:now.toLocaleTimeString('en-GB'),total,paymentMethod:used.length===1?used[0]:'SPLIT',payments:used.map(m=>({method:m,amount:pay[m].amount})),bankakTransactionId:bid,cashier:currentUser?currentUser.username:'',ts:now.toISOString(),shiftId:(shift||newShift||{}).id||'',items:[...cart.values()].map(l=>({id:l.p.id,name:l.p.name,price:Number(l.p.price)||0,qty:l.q,lineTotal:(Number(l.p.price)||0)*l.q}))};
  saving=true;
  const fail=()=>{if(!saving)return;saving=false;msg('The invoice could not be saved. Try again.')};
- try{const tx=DB.transaction(['sales','meta'],'readwrite');tx.objectStore('sales').put(record);tx.objectStore('meta').put({key:'invoiceNo',value:invoiceNo+1});
-  tx.oncomplete=()=>{saving=false;sales.push(record);invoiceNo++;resetInvoice();notice('SALE SAVED','Invoice '+invoice+' has been saved.')};
+ try{const tx=DB.transaction(['sales','meta','shifts'],'readwrite');if(newShift)tx.objectStore('shifts').put(newShift);tx.objectStore('sales').put(record);tx.objectStore('meta').put({key:'invoiceNo',value:invoiceNo+1});
+  tx.oncomplete=()=>{saving=false;if(newShift){shift=newShift;shiftList.push(newShift)}sales.push(record);invoiceNo++;resetInvoice();notice('SALE SAVED','Invoice '+invoice+' has been saved.')};
   tx.onerror=fail;tx.onabort=fail}catch(e){fail()}
 };
 // ---- Products screen ----
@@ -407,13 +421,125 @@ $('xlsOk').onclick=async()=>{
   $('xlsDialog').close();xlsPending=[];refreshLists();notice('IMPORT DONE',newRecs.length+' new products added\n'+upRecs.length+' prices updated')}
  catch(e){$('xlsOk').disabled=false;notice('IMPORT FAILED','Nothing was changed. Please try again.')}
 };
+// ---- Reports and shifts ----
+const PM={CASH:'Cash',BANKAK:'Bankak','O-CASH':'O-Cash'};
+const fmtDT=iso=>new Date(iso).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+const payLabel=s=>s.payments.length===1?PM[s.payments[0].method]:s.payments.map(x=>PM[x.method]).join(' + ');
+const shiftSales=()=>shift?sales.filter(s=>s.shiftId===shift.id).sort((a,b)=>String(a.invoice).localeCompare(String(b.invoice))):[];
+function calcTotals(rows){const o={count:rows.length,total:0,CASH:0,BANKAK:0,'O-CASH':0};rows.forEach(s=>{o.total+=s.total;s.payments.forEach(p=>{o[p.method]+=p.amount})});return o}
+async function ensureShift(){
+ if(shift||!currentUser)return;
+ const orphans=shiftList.length===0?sales.filter(s=>!s.shiftId):[];
+ let start=new Date();
+ orphans.forEach(o=>{const d=new Date(o.ts||(o.date+'T'+o.time));if(!isNaN(d)&&d<start)start=d});
+ const s={id:'S'+Date.now(),startedAt:start.toISOString(),startedBy:currentUser.username,startedByName:currentUser.name,endedAt:null};
+ await new Promise((res,rej)=>{const tx=DB.transaction(['shifts','sales'],'readwrite');tx.objectStore('shifts').put(s);orphans.forEach(o=>{o.shiftId=s.id;tx.objectStore('sales').put(o)});tx.oncomplete=res;tx.onerror=tx.onabort=()=>rej(tx.error)});
+ shift=s;shiftList.push(s);
+}
+let openInv='';
+function renderReports(){
+ const info=$('rInfo'),tb=$('rTable'),tt=$('rTotals');info.innerHTML='';tb.innerHTML='';tt.innerHTML='';
+ if(!shift){info.innerHTML='<div class="empty">No shift is open yet. It starts when you sign in.</div>';$('rPdf').disabled=true;$('rEnd').disabled=true;return}
+ $('rPdf').disabled=false;$('rEnd').disabled=false;
+ const rows=shiftSales(),tot=calcTotals(rows);
+ info.innerHTML='<div class="kv" style="padding:6px 0"><span>CURRENT SHIFT</span><b></b></div><div class="kv" style="padding:6px 0"><span>STARTED</span><b></b></div>';
+ info.querySelectorAll('b')[0].textContent=shift.startedByName||shift.startedBy;info.querySelectorAll('b')[1].textContent=fmtDT(shift.startedAt);
+ const th=document.createElement('div');th.className='tr th';['INVOICE','TIME','PAYMENT','TOTAL'].forEach((x,i)=>{const s=document.createElement('span');s.textContent=x;th.appendChild(s)});tb.appendChild(th);
+ if(!rows.length){const e=document.createElement('div');e.className='empty';e.textContent='No invoices in this shift yet.';tb.appendChild(e)}
+ rows.forEach(s=>{
+  const w=document.createElement('div');w.className='inv';
+  const r=document.createElement('div');r.className='tr';
+  [s.invoice,String(s.time||'').slice(0,5),payLabel(s)].forEach(x=>{const e=document.createElement('span');e.textContent=x;r.appendChild(e)});
+  const b=document.createElement('b');b.textContent=money(s.total);r.appendChild(b);
+  r.onclick=()=>{openInv=openInv===s.invoice?'':s.invoice;renderReports()};w.appendChild(r);
+  if(openInv===s.invoice){
+   const d=document.createElement('div');d.className='det';d.onclick=e=>e.stopPropagation();
+   const l1=document.createElement('div');l1.innerHTML='Date: <b></b> · Cashier: <b></b>';l1.querySelectorAll('b')[0].textContent=s.date;l1.querySelectorAll('b')[1].textContent=s.cashier||'-';d.appendChild(l1);
+   s.payments.forEach(p=>{const l=document.createElement('div');l.textContent=PM[p.method]+': '+money(p.amount);d.appendChild(l)});
+   if(s.payments.some(p=>p.method==='BANKAK')){
+    if(s.bankakTransactionId){const l=document.createElement('div');l.innerHTML='Bankak ID: <b></b> (saved)';l.querySelector('b').textContent=s.bankakTransactionId;d.appendChild(l)}
+    else{const bi=document.createElement('div');bi.className='bi';const inp=document.createElement('input');inp.type='text';inp.inputMode='numeric';inp.maxLength=4;inp.placeholder='Add Bankak ID (4 digits)';inp.oninput=()=>{inp.value=inp.value.replace(/\D/g,'').slice(0,4)};
+     const sv=document.createElement('button');sv.type='button';sv.textContent='Save';
+     sv.onclick=async()=>{const id=inp.value.trim();
+      if(!/^\d{4}$/.test(id)){notice('BANKAK ID','Enter exactly 4 digits.');return}
+      if(sales.some(x=>x!==s&&String(x.bankakTransactionId||'')===id)){notice('BANKAK ID','This Bankak ID is already used. Enter a unique one.');return}
+      try{await new Promise((res,rej)=>{const tx=DB.transaction(['sales','audit'],'readwrite');tx.objectStore('sales').put({...s,bankakTransactionId:id});tx.objectStore('audit').add({time:new Date().toISOString(),user:currentUser?currentUser.username:'',action:'bankak_id_added',details:{invoice:s.invoice,id}});tx.oncomplete=res;tx.onerror=tx.onabort=()=>rej(tx.error)});s.bankakTransactionId=id;renderReports()}
+      catch(e){notice('BANKAK ID','Could not save. Try again.')}};
+     bi.append(inp,sv);d.appendChild(bi)}
+   }
+   w.appendChild(d);
+  }
+  tb.appendChild(w);
+ });
+ [['Invoices',String(tot.count)],['Cash',money(tot.CASH)],['Bankak',money(tot.BANKAK)],['O-Cash',money(tot['O-CASH'])]].forEach(([k,v])=>{const d=document.createElement('div');d.className='kv';d.innerHTML='<span></span><b></b>';d.children[0].textContent=k;d.children[1].textContent=v;tt.appendChild(d)});
+ const g=document.createElement('div');g.className='kv t';g.innerHTML='<span>Shift total</span><b></b>';g.children[1].textContent=money(tot.total);tt.appendChild(g);
+}
+// --- minimal PDF writer (standard fonts, ASCII text) ---
+const pdfEsc=s=>String(s).replace(/[^\x20-\x7E]/g,'?').replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');
+const txtW=(s,sz)=>{let w=0;for(const c of String(s))w+=/[0-9]/.test(c)?.556:/[,.:\- ]/.test(c)?.278:.6;return w*sz};
+function buildPdf(pages){
+ const objs=[];const add=s=>{objs.push(s);return objs.length};
+ add('<< /Type /Catalog /Pages 2 0 R >>');add(null);add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>');add('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>');
+ const kids=[];
+ pages.forEach(ops=>{
+  const pageNo=objs.length+1,contentNo=pageNo+1;kids.push(pageNo+' 0 R');
+  let c='';
+  ops.forEach(o=>{
+   if(o.line){c+='0.7 G 0.6 w '+o.x1+' '+o.y+' m '+o.x2+' '+o.y+' l S\n';return}
+   const x=o.align==='right'?o.x-txtW(o.text,o.size):o.x;
+   c+='BT /'+(o.bold?'F2':'F1')+' '+o.size+' Tf '+x.toFixed(1)+' '+o.y+' Td ('+pdfEsc(o.text)+') Tj ET\n';
+  });
+  add('<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents '+contentNo+' 0 R >>');
+  add('<< /Length '+c.length+' >>\nstream\n'+c+'endstream');
+ });
+ objs[1]='<< /Type /Pages /Kids ['+kids.join(' ')+'] /Count '+kids.length+' >>';
+ let out='%PDF-1.4\n';const offs=[];
+ objs.forEach((o,i)=>{offs.push(out.length);out+=(i+1)+' 0 obj\n'+o+'\nendobj\n'});
+ const xr=out.length;
+ out+='xref\n0 '+(objs.length+1)+'\n0000000000 65535 f \n'+offs.map(o=>String(o).padStart(10,'0')+' 00000 n \n').join('')+'trailer\n<< /Size '+(objs.length+1)+' /Root 1 0 R >>\nstartxref\n'+xr+'\n%%EOF';
+ return new Blob([out],{type:'application/pdf'});
+}
+function shiftPdf(sh,rows){
+ const tot=calcTotals(rows),pages=[];let ops=[],y=800;
+ const T=(text,x,yy,size,bold,align)=>ops.push({text,x,y:yy,size,bold,align});
+ T('Aisha Bakhit Pharmacy',40,y,18,true);y-=22;T('Shift Report',40,y,13,true);y-=24;
+ T('Cashier: '+(sh.startedBy||'-'),40,y,11);y-=15;T('Started: '+fmtDT(sh.startedAt),40,y,11);y-=15;T('Ended: '+(sh.endedAt?fmtDT(sh.endedAt):'-'),40,y,11);y-=15;
+ if(sh.endedBy&&sh.endedBy!==sh.startedBy){T('Ended by: '+sh.endedBy,40,y,11);y-=15}
+ y-=8;ops.push({line:true,x1:40,x2:555,y});y-=18;
+ [['Invoices',String(tot.count)],['Cash',money(tot.CASH)],['Bankak',money(tot.BANKAK)],['O-Cash',money(tot['O-CASH'])]].forEach(([k,v])=>{T(k,40,y,11);T(v,555,y,11,false,'right');y-=15});
+ T('Shift total',40,y-2,13,true);T(money(tot.total),555,y-2,13,true,'right');y-=30;
+ const head=()=>{T('INVOICE',40,y,10,true);T('TIME',140,y,10,true);T('PAYMENT',215,y,10,true);T('TOTAL',555,y,10,true,'right');y-=6;ops.push({line:true,x1:40,x2:555,y});y-=15};
+ head();
+ if(!rows.length){T('No invoices in this shift.',40,y,11)}
+ rows.forEach(s=>{
+  if(y<60){pages.push(ops);ops=[];y=800;head()}
+  T(s.invoice,40,y,11);T(String(s.time||'').slice(0,5),140,y,11);T(payLabel(s),215,y,11);T(money(s.total),555,y,11,false,'right');y-=16;
+ });
+ pages.push(ops);return buildPdf(pages);
+}
+function downloadBlob(blob,name){const u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=name;a.style.display='none';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000)}
+const pdfName=(sh,end)=>'AB_Shift_'+new Date(end||Date.now()).toLocaleDateString('en-CA')+'_'+new Date(end||Date.now()).toLocaleTimeString('en-GB').slice(0,5).replace(':','')+'.pdf';
+$('rPdf').onclick=()=>{if(!shift)return;try{downloadBlob(shiftPdf({...shift,endedAt:null},shiftSales()),pdfName(shift))}catch(e){notice('PDF FAILED','The report could not be created.')}};
+$('rEnd').onclick=async()=>{
+ if(!shift||!currentUser)return;
+ if(!confirm('End this shift and download its report? A new shift starts right after.'))return;
+ try{
+  const rows=shiftSales(),now=new Date(),ended={...shift,endedAt:now.toISOString(),endedBy:currentUser.username,summary:calcTotals(rows)};
+  const blob=shiftPdf(ended,rows);
+  const next={id:'S'+Date.now(),startedAt:now.toISOString(),startedBy:currentUser.username,startedByName:currentUser.name,endedAt:null};
+  await new Promise((res,rej)=>{const tx=DB.transaction(['shifts','audit'],'readwrite');tx.objectStore('shifts').put(ended);tx.objectStore('shifts').put(next);tx.objectStore('audit').add({time:now.toISOString(),user:currentUser.username,action:'shift_ended',details:{shiftId:ended.id,invoices:ended.summary.count,total:ended.summary.total}});tx.oncomplete=res;tx.onerror=tx.onabort=()=>rej(tx.error)});
+  shiftList=shiftList.map(x=>x.id===ended.id?ended:x);shiftList.push(next);shift=next;openInv='';
+  downloadBlob(blob,pdfName(ended,now));renderReports();
+  notice('SHIFT ENDED',ended.summary.count+' invoices • total '+money(ended.summary.total)+'\nThe PDF report was downloaded. A new shift has started.');
+ }catch(e){notice('END SHIFT FAILED','The shift was not closed. Please try again.')}
+};
 // ---- Menu and settings ----
 function closeAll(){$('menuPanel').classList.remove('open');$('setPanel').hidden=true;$('backdrop').hidden=true}
 $('menuBtn').onclick=()=>{closeAll();$('menuPanel').classList.add('open');$('backdrop').hidden=false};
 $('setBtn').onclick=()=>{const was=!$('setPanel').hidden;closeAll();if(!was){$('setPanel').hidden=false;$('backdrop').hidden=false}};
 const SCREENS={sales:'Sales',products:'Products',reports:'Reports'};let screen='sales';
 function renderMenu(){const n=$('menuList');n.innerHTML='';Object.keys(SCREENS).filter(k=>k!==screen).forEach(k=>{const b=document.createElement('button');b.type='button';b.className='mi';b.textContent=SCREENS[k];b.onclick=()=>showScreen(k);n.appendChild(b)})}
-function showScreen(s){screen=s;$('viewSale').hidden=s!=='sales';$('viewProducts').hidden=s!=='products';$('viewReports').hidden=s!=='reports';closeAll();renderMenu();window.scrollTo(0,0)}
+function showScreen(s){screen=s;$('viewSale').hidden=s!=='sales';$('viewProducts').hidden=s!=='products';$('viewReports').hidden=s!=='reports';closeAll();renderMenu();if(s==='reports')renderReports();window.scrollTo(0,0)}
 $('backdrop').onclick=closeAll;renderMenu();
 // ---- Accounts and login ----
 const hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
@@ -434,7 +560,7 @@ function wireEye(b,i){b.onclick=()=>{const s=i.type==='password';i.type=s?'text'
 wireEye($('lgEye'),$('lgPass'));wireEye($('rsEye'),$('rsPass'));
 $('lgEye').innerHTML=ICON.eye;$('rsEye').innerHTML=ICON.eye;$('menuBtn').innerHTML=ICON.menu;$('setBtn').innerHTML=ICON.gear;
 function showLogin(){closeAll();$('lgUser').value='';$('lgPass').value='';$('lgPass').type='password';$('lgEye').innerHTML=ICON.eye;lgMsg(users.length?'':'First time here: the username and password you enter will create the owner account.');$('lgBtn').textContent=users.length?'Sign in':'Create owner account';document.body.classList.add('auth')}
-function enterApp(u){currentUser=u;try{sessionStorage.setItem('ab_user',u.username)}catch(e){}$('who').textContent=u.name;showScreen('sales');document.body.classList.remove('auth')}
+function enterApp(u){currentUser=u;try{sessionStorage.setItem('ab_user',u.username)}catch(e){}$('who').textContent=u.name;showScreen('sales');ensureShift().then(()=>{if(screen==='reports')renderReports()}).catch(()=>{});document.body.classList.remove('auth')}
 $('lgBtn').onclick=async()=>{
  if(!authReady){lgMsg('Loading… try again in a moment.');return}
  const un=$('lgUser').value.trim().toLowerCase(),pw=$('lgPass').value;
@@ -494,7 +620,8 @@ renderCart();
   sales=await req(db.transaction('sales').objectStore('sales').getAll());
   const inv=await req(db.transaction('meta').objectStore('meta').get('invoiceNo'));
   invoiceNo=Math.max(inv?inv.value:1,...sales.map(s=>(parseInt(String(s.invoice).replace(/\D/g,''),10)||0)+1),1);
-  users=await req(db.transaction('users').objectStore('users').getAll());authReady=true;
+  users=await req(db.transaction('users').objectStore('users').getAll());
+  shiftList=await req(db.transaction('shifts').objectStore('shifts').getAll());shift=shiftList.find(x=>!x.endedAt)||null;authReady=true;
   let su=null;try{su=sessionStorage.getItem('ab_user')}catch(e){}
   const cu=users.find(x=>x.username===su);if(cu)enterApp(cu);else showLogin();
  }catch(e){lgMsg('Database error. Close the app and open it again.')}
