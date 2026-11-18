@@ -54,7 +54,7 @@ button{font-family:inherit;color:inherit;cursor:pointer}
 dialog{border:2px solid var(--line);border-radius:28px;padding:0;background:var(--card);color:var(--ink);width:min(90vw,380px)}dialog::backdrop{background:rgba(0,0,0,.5)}
 .modal{padding:20px}.modal h2{font-size:12px;letter-spacing:.5px;color:var(--mute);margin:0 0 10px}.modal p{font-size:15px;line-height:1.5;margin:0 0 16px;white-space:pre-line}
 .login{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:18px;background:var(--bg);overflow:auto;z-index:40}
-body.auth .login{display:flex}body.auth .win,body.auth #backdrop,body.auth .side,body.auth .pop{display:none!important}
+body.auth .login{display:flex;flex-direction:column}.ver{font-size:11px;color:var(--mute);margin-top:14px}body.auth .win,body.auth #backdrop,body.auth .side,body.auth .pop{display:none!important}
 .lcard{width:100%;max-width:380px;background:var(--card);border:2px solid var(--line);border-radius:36px;overflow:hidden}
 .ltop{padding:20px 22px 4px}.lrow{display:flex;justify-content:space-between;align-items:flex-start}
 .llogo{width:58px;height:58px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;overflow:hidden}.llogo img{width:50px;height:50px;object-fit:contain}
@@ -69,30 +69,33 @@ body.auth .login{display:flex}body.auth .win,body.auth #backdrop,body.auth .side
 .code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:24px;letter-spacing:2px;text-align:center;background:var(--field);border-radius:16px;padding:16px 8px;margin:6px 0 14px;user-select:all;-webkit-user-select:all}
 .acts2{display:flex;gap:8px;margin-top:6px}.acts2 .pillbtn{padding:13px;font-size:14px}.alt{background:var(--field)!important}
 dialog .lf:first-of-type{margin-top:4px}
+.ph{padding:28px 16px;text-align:center;margin-top:0}.ph b{font-size:18px}.ph p{color:var(--mute);font-size:13px;margin:8px 0 0}
+.hint{font-size:11px;color:var(--mute);text-align:center;margin:6px 6px 10px;line-height:1.5}#viewProducts .pillbtn{margin-top:0}#npMsg{min-height:6px;margin:4px 4px 6px}#epBtn{margin-top:4px}.xs{font-size:11px;color:var(--mute);white-space:nowrap}.xs.ok{color:var(--ink);font-weight:700}
 </style>
 </head>
 <body class="auth">
 
 <div class="login" id="loginView"><div class="lcard">
  <div class="ltop">
-  <div class="lrow"><button class="ic themeBtn" type="button" aria-label="Switch light and dark mode">☾</button><div class="llogo"><img src="icon-192.png" alt="Pharmacy logo"></div></div>
+  <div class="lrow"><button class="ic themeBtn" type="button" aria-label="Switch light and dark mode"></button><div class="llogo"><img src="icon-192.png" alt="Pharmacy logo"></div></div>
   <div class="lhead"><b>Aisha Bakhit Pharmacy</b><small>mahmoud abu eyad</small></div>
   <div class="lf"><label for="lgUser">Username</label><input class="fld" id="lgUser" type="text" autocomplete="username" autocapitalize="none" spellcheck="false"></div>
-  <div class="lf"><label for="lgPass">Password</label><div class="pw"><input class="fld" id="lgPass" type="password" autocomplete="current-password" autocapitalize="none" spellcheck="false"><button class="eye" id="lgEye" type="button" aria-label="Show password">👁</button></div></div>
+  <div class="lf"><label for="lgPass">Password</label><div class="pw"><input class="fld" id="lgPass" type="password" autocomplete="current-password" autocapitalize="none" spellcheck="false"><button class="eye" id="lgEye" type="button" aria-label="Show password"></button></div></div>
   <p id="lgMsg" role="alert"></p>
  </div>
  <div class="lband"><button id="lgBtn" type="button">Sign in</button><button id="lgForgot" type="button">Forgot password?</button></div>
-</div></div>
+</div><div class="ver">Version 3.0</div></div>
 
 <div class="win" id="app">
  <div class="top">
   <div class="tl">
-   <button class="ic" id="menuBtn" type="button" aria-label="Menu">☰</button>
+   <button class="ic" id="menuBtn" type="button" aria-label="Menu"></button>
    <div class="brand"><span class="lg"><img src="icon-192.png" alt="Pharmacy logo"></span>
     <span class="nm">Aisha Bakhit Pharmacy<button class="dot" id="dot" type="button" aria-label="Connection status"></button><small id="connTxt"></small></span></div>
   </div>
-  <button class="ic" id="setBtn" type="button" aria-label="Settings">⚙</button>
+  <button class="ic" id="setBtn" type="button" aria-label="Settings"></button>
  </div>
+ <div id="viewSale">
  <div class="bd">
   <input class="fld" id="q" type="search" placeholder="Search products…" autocomplete="off">
   <div class="box" id="results" hidden></div>
@@ -103,15 +106,26 @@ dialog .lf:first-of-type{margin-top:4px}
   <div class="rem" id="remBox">Remaining: <b id="rem">0</b></div>
  </div>
  <div class="band"><p id="payMsg" role="alert"></p><button class="pillbtn" id="pay" type="button">Pay</button></div>
+ </div>
+ <div id="viewProducts" hidden><div class="bd">
+  <input class="fld" id="pq" type="search" placeholder="Search products…" autocomplete="off">
+  <div class="box" id="pResults" hidden></div>
+  <div class="lbl">ADD A PRODUCT</div>
+  <input class="fld" id="npName" type="text" placeholder="Product name" autocomplete="off">
+  <input class="fld" id="npPrice" type="number" min="0" step="any" inputmode="decimal" placeholder="Price" style="margin-top:8px">
+  <p class="err" id="npMsg" role="alert"></p>
+  <button class="pillbtn" id="npOk" type="button">Confirm</button>
+  <button class="pillbtn alt" id="xlsBtn" type="button" style="margin-top:16px">Upload Excel file</button>
+  <p class="hint">Adds new items and updates prices of existing ones.<br>Row 1 must have the headers: Product Name, Price.</p>
+  <input type="file" id="xlsFile" accept=".xlsx" hidden>
+  <button class="pillbtn alt" id="epBtn" type="button" style="margin-bottom:10px">Edit a product price</button>
+ </div></div>
+ <div id="viewReports" hidden><div class="bd"><div class="box ph"><b>Reports</b><p>This screen is coming soon.</p></div></div></div>
 </div>
 
 <div id="backdrop" hidden></div>
 <aside class="side" id="menuPanel" aria-label="Menu"><h2>MENU</h2>
- <button class="mi on" id="miSale" type="button">New sale</button>
- <button class="mi" type="button" disabled>Shift report<small>Soon</small></button>
- <button class="mi" type="button" disabled>Reports<small>Soon</small></button>
- <button class="mi" type="button" disabled>Inventory<small>Soon</small></button>
- <button class="mi" type="button" disabled>Users<small>Soon</small></button>
+ <nav id="menuList"></nav>
 </aside>
 <div class="pop" id="setPanel" hidden>
  <div class="sg"><small>Signed in as</small><b id="who"></b></div>
@@ -122,7 +136,7 @@ dialog .lf:first-of-type{margin-top:4px}
 <dialog id="resetDialog"><div class="modal"><h2>RESET PASSWORD</h2>
  <div class="lf"><label for="rsUser">Username</label><input class="fld" id="rsUser" type="text" autocapitalize="none" spellcheck="false"></div>
  <div class="lf"><label for="rsCode">Recovery code</label><input class="fld" id="rsCode" type="text" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX"></div>
- <div class="lf"><label for="rsPass">New password</label><div class="pw"><input class="fld" id="rsPass" type="password" autocapitalize="none" spellcheck="false"><button class="eye" id="rsEye" type="button" aria-label="Show password">👁</button></div></div>
+ <div class="lf"><label for="rsPass">New password</label><div class="pw"><input class="fld" id="rsPass" type="password" autocapitalize="none" spellcheck="false"><button class="eye" id="rsEye" type="button" aria-label="Show password"></button></div></div>
  <p class="err" id="rsMsg" role="alert"></p>
  <div class="acts2"><button class="pillbtn alt" id="rsCancel" type="button">Cancel</button><button class="pillbtn" id="rsOk" type="button">Reset</button></div>
 </div></dialog>
@@ -131,15 +145,37 @@ dialog .lf:first-of-type{margin-top:4px}
  <p>Write it down or take a screenshot now. It is shown only once, and it is the only way to reset the owner password without losing data.</p>
  <div class="acts2"><button class="pillbtn alt" id="codeCopy" type="button">Copy</button><button class="pillbtn" id="codeOk" type="button">I saved it</button></div>
 </div></dialog>
+<dialog id="epDialog"><div class="modal"><h2>EDIT PRICE</h2>
+ <input class="fld" id="epQ" type="search" placeholder="Search the product…" autocomplete="off">
+ <div class="box" id="epResults" hidden style="max-height:170px;overflow:auto"></div>
+ <div class="box" id="epSel" hidden></div>
+ <input class="fld" id="epPrice" type="number" min="0" step="any" inputmode="decimal" placeholder="New price" style="margin-top:8px">
+ <p class="err" id="epMsg" role="alert"></p>
+ <div class="acts2"><button class="pillbtn alt" id="epCancel" type="button">Cancel</button><button class="pillbtn" id="epOk" type="button">Confirm</button></div>
+</div></dialog>
+<dialog id="xlsDialog"><div class="modal"><h2>EXCEL PREVIEW</h2>
+ <p id="xlsSum" style="font-size:13px;margin:0 0 10px"></p>
+ <div class="box" id="xlsRows" style="max-height:250px;overflow:auto"></div>
+ <div class="acts2" style="margin-top:12px"><button class="pillbtn alt" id="xlsCancel" type="button">Cancel</button><button class="pillbtn" id="xlsOk" type="button">Import</button></div>
+</div></dialog>
 <dialog id="noticeDialog"><div class="modal"><h2 id="noticeTitle"></h2><p id="noticeText"></p><button class="pillbtn" id="noticeOk" type="button">OK</button></div></dialog>
 
 <script>
 const $=id=>document.getElementById(id);
 const money=v=>Number(v||0).toLocaleString('en-US');
+const svg=p=>'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>';
+const ICON={
+ eye:svg('<path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/>'),
+ eyeoff:svg('<path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a19.8 19.8 0 0 1 5.06-5.94M9.9 4.24A10.9 10.9 0 0 1 12 4c7 0 11 7 11 7a19.9 19.9 0 0 1-3.17 4.19M1 1l22 22"/><path d="M14.12 14.12A3 3 0 1 1 9.88 9.88"/>'),
+ moon:svg('<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>'),
+ sun:svg('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'),
+ menu:svg('<path d="M3 6h18M3 12h18M3 18h18"/>'),
+ gear:svg('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>')
+};
 function notice(t,x){$('noticeTitle').textContent=t;$('noticeText').textContent=x;$('noticeDialog').showModal()}
 $('noticeOk').onclick=()=>$('noticeDialog').close();
 // ---- Theme ----
-function setTheme(t){document.documentElement.dataset.theme=t;document.querySelectorAll('.themeBtn').forEach(b=>b.textContent=t==='dark'?'☀':'☾');$('darkSw').setAttribute('aria-checked',String(t==='dark'));try{localStorage.setItem('ab_theme',t)}catch(e){}}
+function setTheme(t){document.documentElement.dataset.theme=t;document.querySelectorAll('.themeBtn').forEach(b=>b.innerHTML=t==='dark'?ICON.sun:ICON.moon);$('darkSw').setAttribute('aria-checked',String(t==='dark'));try{localStorage.setItem('ab_theme',t)}catch(e){}}
 let saved='light';try{saved=localStorage.getItem('ab_theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch(e){}
 const flip=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
 setTheme(saved);document.querySelectorAll('.themeBtn').forEach(b=>b.onclick=flip);$('darkSw').onclick=flip;
@@ -150,8 +186,8 @@ $('dot').onclick=()=>{$('connTxt').textContent=navigator.onLine?'Online':'Offlin
 addEventListener('online',net);addEventListener('offline',net);net();
 // ---- Database ----
 function openDB(){return new Promise((res,rej)=>{
- const r=indexedDB.open('ab_pos',3);
- r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains('products'))d.createObjectStore('products',{keyPath:'id'});if(!d.objectStoreNames.contains('meta'))d.createObjectStore('meta',{keyPath:'key'});if(!d.objectStoreNames.contains('sales'))d.createObjectStore('sales',{keyPath:'invoice'});if(!d.objectStoreNames.contains('users'))d.createObjectStore('users',{keyPath:'username'})};
+ const r=indexedDB.open('ab_pos',4);
+ r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains('products'))d.createObjectStore('products',{keyPath:'id'});if(!d.objectStoreNames.contains('meta'))d.createObjectStore('meta',{keyPath:'key'});if(!d.objectStoreNames.contains('sales'))d.createObjectStore('sales',{keyPath:'invoice'});if(!d.objectStoreNames.contains('users'))d.createObjectStore('users',{keyPath:'username'});if(!d.objectStoreNames.contains('audit'))d.createObjectStore('audit',{autoIncrement:true})};
  r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
 const req=r=>new Promise((res,rej)=>{r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
 async function seedIfNeeded(db){
@@ -249,11 +285,136 @@ $('pay').onclick=()=>{
   tx.oncomplete=()=>{saving=false;sales.push(record);invoiceNo++;resetInvoice();notice('SALE SAVED','Invoice '+invoice+' has been saved.')};
   tx.onerror=fail;tx.onabort=fail}catch(e){fail()}
 };
+// ---- Products screen ----
+function writeProducts(list,entry){return new Promise((res,rej)=>{
+ const tx=DB.transaction(['products','audit'],'readwrite');
+ list.forEach(p=>tx.objectStore('products').put({id:p.id,name:p.name,price:p.price}));
+ tx.objectStore('audit').add({time:new Date().toISOString(),user:currentUser?currentUser.username:'',action:entry.action,details:entry.details});
+ tx.oncomplete=res;tx.onerror=tx.onabort=()=>rej(tx.error)})}
+function refreshLists(){renderResults();renderPResults();renderCart()}
+function listRows(box,items,onPick){box.innerHTML='';
+ if(!items.length){box.innerHTML='<div class="empty">No matching products.</div>';return}
+ items.forEach(p=>{const r=document.createElement('div');r.className='rr';const n=document.createElement('span');n.textContent=p.name;const pr=document.createElement('b');pr.textContent=money(p.price);r.append(n,pr);r.onclick=()=>onPick(p);box.appendChild(r)})}
+function renderPResults(){const box=$('pResults'),t=norm($('pq').value);if(!t){box.hidden=true;box.innerHTML='';return}box.hidden=false;listRows(box,products.filter(p=>p._n.includes(t)).slice(0,50),p=>openEdit(p))}
+$('pq').addEventListener('input',renderPResults);
+// add a product
+$('npOk').onclick=async()=>{
+ const m=x=>{$('npMsg').textContent=x},name=$('npName').value.trim().replace(/\s+/g,' '),raw=$('npPrice').value.trim(),price=Number(raw);
+ if(!name){m('Enter the product name.');return}
+ if(raw===''||!Number.isFinite(price)||price<=0){m('Enter a price greater than zero.');return}
+ const key=norm(name);
+ if(products.some(p=>p._n===key)){m('This product already exists. Use “Edit a product price”.');return}
+ const id=products.reduce((a,p)=>Math.max(a,p.id),-1)+1,rec={id,name,price};
+ try{await writeProducts([rec],{action:'product_added',details:{id,name,price}});products.push({...rec,_n:key});$('npName').value='';$('npPrice').value='';m('');refreshLists();notice('PRODUCT ADDED',name+'\nPrice: '+money(price))}
+ catch(e){m('Could not save. Try again.')}
+};
+$('npName').addEventListener('input',()=>$('npMsg').textContent='');$('npPrice').addEventListener('input',()=>$('npMsg').textContent='');
+// edit a price
+let epSel=null;
+function renderSel(){const b=$('epSel');if(!epSel){b.hidden=true;return}b.hidden=false;b.innerHTML='';const r=document.createElement('div');r.className='rr';const n=document.createElement('span');n.textContent=epSel.name;const pr=document.createElement('b');pr.textContent='Now '+money(epSel.price);r.append(n,pr);b.appendChild(r)}
+function openEdit(p){epSel=p||null;$('epQ').value='';$('epResults').hidden=true;$('epPrice').value='';$('epMsg').textContent='';renderSel();$('epDialog').showModal()}
+$('epBtn').onclick=()=>openEdit(null);
+$('epQ').addEventListener('input',()=>{const box=$('epResults'),t=norm($('epQ').value);if(!t){box.hidden=true;return}box.hidden=false;listRows(box,products.filter(p=>p._n.includes(t)).slice(0,30),p=>{epSel=p;box.hidden=true;$('epQ').value='';renderSel();$('epPrice').focus()})});
+$('epCancel').onclick=()=>$('epDialog').close();
+$('epOk').onclick=async()=>{
+ const m=x=>{$('epMsg').textContent=x},raw=$('epPrice').value.trim(),price=Number(raw);
+ if(!epSel){m('Search and choose a product first.');return}
+ if(raw===''||!Number.isFinite(price)||price<=0){m('Enter a new price greater than zero.');return}
+ if(price===Number(epSel.price)){m('This is already the current price.');return}
+ const p=epSel,old=p.price;
+ try{await writeProducts([{id:p.id,name:p.name,price}],{action:'price_changed',details:{id:p.id,name:p.name,oldPrice:old,newPrice:price}});p.price=price;$('epDialog').close();refreshLists();notice('PRICE UPDATED',p.name+'\n'+money(old)+'  →  '+money(price))}
+ catch(e){m('Could not save. Try again.')}
+};
+// Excel import
+async function readZipEntries(buffer){
+ const bytes=new Uint8Array(buffer),view=new DataView(buffer);let eocd=-1;
+ for(let i=bytes.length-22;i>=Math.max(0,bytes.length-65558);i--){if(view.getUint32(i,true)===0x06054b50){eocd=i;break}}
+ if(eocd<0)throw new Error('This is not a valid .xlsx workbook.');
+ const count=view.getUint16(eocd+10,true),centralOffset=view.getUint32(eocd+16,true);let pos=centralOffset;const entries={};
+ for(let n=0;n<count;n++){
+  if(view.getUint32(pos,true)!==0x02014b50)throw new Error('The Excel file structure is not supported.');
+  const method=view.getUint16(pos+10,true),compressedSize=view.getUint32(pos+20,true),nameLen=view.getUint16(pos+28,true),extraLen=view.getUint16(pos+30,true),commentLen=view.getUint16(pos+32,true),localOffset=view.getUint32(pos+42,true);
+  const name=new TextDecoder().decode(bytes.slice(pos+46,pos+46+nameLen)),localNameLen=view.getUint16(localOffset+26,true),localExtraLen=view.getUint16(localOffset+28,true),dataStart=localOffset+30+localNameLen+localExtraLen;
+  entries[name]={method,data:bytes.slice(dataStart,dataStart+compressedSize)};pos+=46+nameLen+extraLen+commentLen;
+ }
+ return async name=>{
+  const entry=entries[name];if(!entry)return null;
+  if(entry.method===0)return new TextDecoder().decode(entry.data);
+  if(entry.method!==8)throw new Error('Unsupported Excel compression method.');
+  if(typeof DecompressionStream==='undefined')throw new Error('This phone browser cannot read .xlsx files offline. Update Chrome and Android System WebView, then try again.');
+  const stream=new Blob([entry.data]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+  return await new Response(stream).text();
+ };
+}
+const xmlDoc=text=>new DOMParser().parseFromString(text,'application/xml');
+const cellColumn=ref=>(String(ref).match(/^[A-Z]+/)||[''])[0];
+async function parseExcelWorkbook(file){
+ const get=await readZipEntries(await file.arrayBuffer());
+ const sharedText=await get('xl/sharedStrings.xml'),shared=[];
+ if(sharedText){xmlDoc(sharedText).querySelectorAll('si').forEach(si=>shared.push(Array.from(si.querySelectorAll('t')).map(x=>x.textContent).join('')))}
+ let sheetPath='xl/worksheets/sheet1.xml';
+ const wbText=await get('xl/workbook.xml'),relsText=await get('xl/_rels/workbook.xml.rels');
+ if(wbText&&relsText){const wb=xmlDoc(wbText),rels=xmlDoc(relsText),first=wb.querySelector('sheets sheet'),rid=first&&(first.getAttribute('r:id')||first.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships','id'));
+  const rel=Array.from(rels.querySelectorAll('Relationship')).find(x=>x.getAttribute('Id')===rid);
+  if(rel){const target=rel.getAttribute('Target');sheetPath=target.startsWith('/')?target.slice(1):('xl/'+target).replace(/\/\.\//g,'/').replace(/xl\/xl\//,'xl/')}}
+ const sheetText=await get(sheetPath);if(!sheetText)throw new Error('Could not find the first worksheet in this Excel file.');
+ const doc=xmlDoc(sheetText);if(doc.querySelector('parsererror'))throw new Error('The worksheet is not readable.');
+ const rows=Array.from(doc.querySelectorAll('sheetData row')).map(row=>{const cells={};
+  row.querySelectorAll('c').forEach(c=>{const col=cellColumn(c.getAttribute('r')),type=c.getAttribute('t');let value='';
+   if(type==='inlineStr')value=Array.from(c.querySelectorAll('is t')).map(x=>x.textContent).join('');
+   else{const v=(c.querySelector('v')||{}).textContent||'';value=type==='s'?(shared[Number(v)]||''):v}
+   cells[col]=value});return cells});
+ if(!rows.length)throw new Error('The worksheet is empty.');
+ const first=rows[0],cols=Object.keys(first),
+  nameCol=cols.find(c=>/^(product\s*name|product|name|item|drug|اسم المنتج|اسم الصنف|الاسم|الصنف|المنتج)$/i.test(String(first[c]).trim())),
+  priceCol=cols.find(c=>/^(price|selling\s*price|unit\s*price|السعر|سعر البيع)$/i.test(String(first[c]).trim()));
+ if(!nameCol||!priceCol)throw new Error('Row 1 must contain the headers: Product Name and Price.');
+ return rows.slice(1).map(r=>({name:String(r[nameCol]||'').trim().replace(/\s+/g,' '),price:Number(String(r[priceCol]||'').replace(/,/g,''))})).filter(x=>x.name);
+}
+let xlsPending=[],xlsFileName='';
+function showXlsPreview(rows){
+ const known=new Map();products.forEach(p=>{if(p._n&&!known.has(p._n))known.set(p._n,p)});const seen=new Set();
+ xlsPending=rows.map(r=>{const key=norm(r.name),valid=Number.isFinite(r.price)&&r.price>0;
+  if(!key||!valid)return {...r,key,action:'invalid'};
+  if(seen.has(key))return {...r,key,action:'dup'};
+  seen.add(key);const ex=known.get(key);
+  if(!ex)return {...r,key,action:'new'};
+  if(Number(ex.price)!==r.price)return {...r,key,action:'update',ex};
+  return {...r,key,action:'same'}});
+ const n=a=>xlsPending.filter(x=>x.action===a).length,ch=n('new')+n('update');
+ $('xlsSum').textContent=rows.length+' rows • '+n('new')+' new • '+n('update')+' price updates • '+n('same')+' unchanged • '+n('dup')+' duplicate rows • '+n('invalid')+' invalid';
+ const L={new:'NEW',update:'PRICE UPDATE',same:'UNCHANGED',dup:'DUPLICATE',invalid:'INVALID PRICE'},box=$('xlsRows');box.innerHTML='';
+ xlsPending.slice(0,100).forEach(x=>{const r=document.createElement('div');r.className='rr';const a=document.createElement('span');a.textContent=x.name;const b=document.createElement('span');b.className='xs'+(x.action==='new'||x.action==='update'?' ok':'');b.textContent=(x.action==='invalid'?'—':money(x.price))+' · '+L[x.action];r.append(a,b);box.appendChild(r)});
+ if(xlsPending.length>100){const e=document.createElement('div');e.className='empty';e.textContent='Showing the first 100 rows. All valid rows will be imported.';box.appendChild(e)}
+ $('xlsOk').disabled=ch===0;$('xlsOk').style.opacity=ch===0?'.5':'1';$('xlsDialog').showModal();
+}
+$('xlsBtn').onclick=()=>$('xlsFile').click();
+$('xlsFile').addEventListener('change',async e=>{
+ const f=e.target.files&&e.target.files[0];if(!f)return;xlsFileName=f.name;
+ try{if(!/\.xlsx$/i.test(f.name))throw new Error('Please choose an .xlsx file. In Excel use Save As → Excel Workbook.');
+  const rows=await parseExcelWorkbook(f);if(!rows.length)throw new Error('No product rows were found.');showXlsPreview(rows)}
+ catch(err){notice('EXCEL FILE ERROR',err.message||'Could not read this Excel file.')}
+ e.target.value='';
+});
+$('xlsCancel').onclick=()=>{$('xlsDialog').close();xlsPending=[]};
+$('xlsOk').onclick=async()=>{
+ const adds=xlsPending.filter(x=>x.action==='new'),ups=xlsPending.filter(x=>x.action==='update');if(!adds.length&&!ups.length)return;
+ let nid=products.reduce((a,p)=>Math.max(a,p.id),-1)+1;
+ const newRecs=adds.map(x=>({id:nid++,name:x.name,price:x.price})),upRecs=ups.map(x=>({id:x.ex.id,name:x.ex.name,price:x.price}));
+ $('xlsOk').disabled=true;
+ try{await writeProducts([...newRecs,...upRecs],{action:'excel_import',details:{file:xlsFileName,added:newRecs.length,updated:upRecs.length}});
+  newRecs.forEach(r=>products.push({...r,_n:norm(r.name)}));ups.forEach(x=>{x.ex.price=x.price});
+  $('xlsDialog').close();xlsPending=[];refreshLists();notice('IMPORT DONE',newRecs.length+' new products added\n'+upRecs.length+' prices updated')}
+ catch(e){$('xlsOk').disabled=false;notice('IMPORT FAILED','Nothing was changed. Please try again.')}
+};
 // ---- Menu and settings ----
 function closeAll(){$('menuPanel').classList.remove('open');$('setPanel').hidden=true;$('backdrop').hidden=true}
 $('menuBtn').onclick=()=>{closeAll();$('menuPanel').classList.add('open');$('backdrop').hidden=false};
 $('setBtn').onclick=()=>{const was=!$('setPanel').hidden;closeAll();if(!was){$('setPanel').hidden=false;$('backdrop').hidden=false}};
-$('backdrop').onclick=closeAll;$('miSale').onclick=closeAll;
+const SCREENS={sales:'Sales',products:'Products',reports:'Reports'};let screen='sales';
+function renderMenu(){const n=$('menuList');n.innerHTML='';Object.keys(SCREENS).filter(k=>k!==screen).forEach(k=>{const b=document.createElement('button');b.type='button';b.className='mi';b.textContent=SCREENS[k];b.onclick=()=>showScreen(k);n.appendChild(b)})}
+function showScreen(s){screen=s;$('viewSale').hidden=s!=='sales';$('viewProducts').hidden=s!=='products';$('viewReports').hidden=s!=='reports';closeAll();renderMenu();window.scrollTo(0,0)}
+$('backdrop').onclick=closeAll;renderMenu();
 // ---- Accounts and login ----
 const hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
 async function hashPw(pw,saltHex){
@@ -269,10 +430,11 @@ const saveUser=u=>new Promise((res,rej)=>{const tx=DB.transaction('users','readw
 function showCode(code,title){$('codeTitle').textContent=title||'RECOVERY CODE';$('codeText').textContent=code;$('codeCopy').textContent='Copy';$('codeDialog').showModal()}
 $('codeOk').onclick=()=>{$('codeDialog').close();$('codeText').textContent=''};
 $('codeCopy').onclick=async()=>{try{await navigator.clipboard.writeText($('codeText').textContent);$('codeCopy').textContent='Copied'}catch(e){$('codeCopy').textContent='Select and copy'}};
-function wireEye(b,i){b.onclick=()=>{const s=i.type==='password';i.type=s?'text':'password';b.textContent=s?'🙈':'👁';b.setAttribute('aria-label',s?'Hide password':'Show password')}}
+function wireEye(b,i){b.onclick=()=>{const s=i.type==='password';i.type=s?'text':'password';b.innerHTML=s?ICON.eyeoff:ICON.eye;b.setAttribute('aria-label',s?'Hide password':'Show password')}}
 wireEye($('lgEye'),$('lgPass'));wireEye($('rsEye'),$('rsPass'));
-function showLogin(){closeAll();$('lgUser').value='';$('lgPass').value='';$('lgPass').type='password';$('lgEye').textContent='👁';lgMsg(users.length?'':'First time here: the username and password you enter will create the owner account.');$('lgBtn').textContent=users.length?'Sign in':'Create owner account';document.body.classList.add('auth')}
-function enterApp(u){currentUser=u;try{sessionStorage.setItem('ab_user',u.username)}catch(e){}$('who').textContent=u.name;closeAll();document.body.classList.remove('auth')}
+$('lgEye').innerHTML=ICON.eye;$('rsEye').innerHTML=ICON.eye;$('menuBtn').innerHTML=ICON.menu;$('setBtn').innerHTML=ICON.gear;
+function showLogin(){closeAll();$('lgUser').value='';$('lgPass').value='';$('lgPass').type='password';$('lgEye').innerHTML=ICON.eye;lgMsg(users.length?'':'First time here: the username and password you enter will create the owner account.');$('lgBtn').textContent=users.length?'Sign in':'Create owner account';document.body.classList.add('auth')}
+function enterApp(u){currentUser=u;try{sessionStorage.setItem('ab_user',u.username)}catch(e){}$('who').textContent=u.name;showScreen('sales');document.body.classList.remove('auth')}
 $('lgBtn').onclick=async()=>{
  if(!authReady){lgMsg('Loading… try again in a moment.');return}
  const un=$('lgUser').value.trim().toLowerCase(),pw=$('lgPass').value;
@@ -299,7 +461,7 @@ $('lgBtn').onclick=async()=>{
 $('lgPass').addEventListener('keydown',e=>{if(e.key==='Enter')$('lgBtn').click()});
 $('lgForgot').onclick=()=>{
  if(!users.length){notice('FORGOT PASSWORD','No account exists yet. Type a username and a password, then tap Create owner account.');return}
- $('rsUser').value=$('lgUser').value;$('rsCode').value='';$('rsPass').value='';$('rsPass').type='password';$('rsEye').textContent='👁';$('rsMsg').textContent='';$('resetDialog').showModal()};
+ $('rsUser').value=$('lgUser').value;$('rsCode').value='';$('rsPass').value='';$('rsPass').type='password';$('rsEye').innerHTML=ICON.eye;$('rsMsg').textContent='';$('resetDialog').showModal()};
 $('rsCancel').onclick=()=>$('resetDialog').close();
 $('rsOk').onclick=async()=>{
  const m=x=>{$('rsMsg').textContent=x},un=$('rsUser').value.trim().toLowerCase(),code=normCode($('rsCode').value),pw=$('rsPass').value;
