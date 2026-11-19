@@ -76,6 +76,7 @@ dialog .lf:first-of-type{margin-top:4px}
 .det{padding:0 0 12px;font-size:12px;color:var(--mute);line-height:1.7;cursor:default}.det b{color:var(--ink)}.det .bi{display:flex;gap:8px;margin-top:6px}.det .bi input{flex:1;height:42px;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:0 10px;font-size:15px;min-width:0}.det .bi button{border:0;background:var(--btn);border-radius:12px;padding:0 16px;font-weight:700;font-size:13px}
 .kv{display:flex;justify-content:space-between;padding:7px 0;font-size:14px}.kv span{color:var(--mute)}.kv.t{border-top:1px solid var(--sep);margin-top:4px;padding-top:10px;font-size:16px}.kv.t span{color:var(--ink)}
 #viewReports .pillbtn{margin-top:8px}
+.bkinfo{font-size:11px;color:var(--mute);text-align:center;margin:0 0 10px}.pop{max-height:calc(100vh - 90px);overflow:auto}
 </style>
 </head>
 <body class="auth">
@@ -89,7 +90,7 @@ dialog .lf:first-of-type{margin-top:4px}
   <p id="lgMsg" role="alert"></p>
  </div>
  <div class="lband"><button id="lgBtn" type="button">Sign in</button><button id="lgForgot" type="button">Forgot password?</button></div>
-</div><div class="ver">Version 3.1</div></div>
+</div><div class="ver">Version 3.3</div></div>
 
 <div class="win" id="app">
  <div class="top">
@@ -142,6 +143,10 @@ dialog .lf:first-of-type{margin-top:4px}
 <div class="pop" id="setPanel" hidden>
  <div class="sg"><small>Signed in as</small><b id="who"></b></div>
  <div class="sg row"><span>Dark mode</span><button class="sw" id="darkSw" type="button" role="switch" aria-checked="false" aria-label="Dark mode"><i></i></button></div>
+ <button class="pillbtn alt" id="bkBtn" type="button" style="margin-bottom:8px">Backup data</button>
+ <button class="pillbtn alt" id="restoreBtn" type="button" style="margin-bottom:6px">Restore backup</button>
+ <div class="bkinfo" id="bkInfo"></div>
+ <input type="file" id="restoreFile" accept=".json,application/json" hidden>
  <button class="pillbtn alt" id="recBtn" type="button" style="margin-bottom:8px">Recovery code</button>
  <button class="pillbtn" id="signOut" type="button">Sign out</button>
 </div>
@@ -533,10 +538,44 @@ $('rEnd').onclick=async()=>{
   notice('SHIFT ENDED',ended.summary.count+' invoices • total '+money(ended.summary.total)+'\nThe PDF report was downloaded. A new shift has started.');
  }catch(e){notice('END SHIFT FAILED','The shift was not closed. Please try again.')}
 };
+// ---- Backup and restore (products, sales, shifts, history) ----
+const BK_STORES=['products','sales','shifts','audit','meta'];
+function showBk(){let v=null;try{v=localStorage.getItem('ab_last_backup')}catch(e){}$('bkInfo').textContent=v?'Last backup: '+fmtDT(v):'No backup has been made yet.'}
+$('bkBtn').onclick=async()=>{
+ closeAll();
+ try{
+  const data=await new Promise((res,rej)=>{const tx=DB.transaction(BK_STORES,'readonly'),out={};let n=0;
+   BK_STORES.forEach(s=>{const g=tx.objectStore(s).getAll();g.onsuccess=()=>{out[s]=g.result;if(++n===BK_STORES.length)res(out)};g.onerror=()=>rej(g.error)})});
+  const now=new Date(),backup={app:'AB_POS',version:2,created:now.toISOString(),counts:{products:data.products.length,sales:data.sales.length,shifts:data.shifts.length},data};
+  const name='AB_POS_BACKUP_'+now.toLocaleDateString('en-CA')+'_'+now.toLocaleTimeString('en-GB').slice(0,5).replace(':','')+'.json';
+  downloadBlob(new Blob([JSON.stringify(backup)],{type:'application/json'}),name);
+  try{localStorage.setItem('ab_last_backup',now.toISOString())}catch(e){}
+  notice('BACKUP SAVED','File: '+name+'\n'+data.products.length+' products • '+data.sales.length+' invoices\n\nKeep it somewhere safe: Google Drive, WhatsApp to yourself, or another phone.');
+ }catch(e){notice('BACKUP FAILED','The backup could not be created. Please try again.')}
+};
+$('restoreBtn').onclick=()=>{closeAll();$('restoreFile').value='';$('restoreFile').click()};
+$('restoreFile').addEventListener('change',e=>{
+ const f=e.target.files&&e.target.files[0];if(!f)return;
+ const rd=new FileReader();rd.onerror=()=>notice('RESTORE FAILED','The file could not be read.');
+ rd.onload=()=>{
+  let b;try{b=JSON.parse(rd.result)}catch(err){notice('INVALID FILE','This is not a valid backup file.');return}
+  const d=b&&b.data;
+  if(!b||b.app!=='AB_POS'||!d||!Array.isArray(d.products)||!Array.isArray(d.sales)||!Array.isArray(d.shifts||[])){notice('INVALID FILE','This file is not an Aisha Bakhit POS backup.');return}
+  if(!d.products.every(p=>p&&typeof p.name==='string'&&p.id!==undefined)||!d.sales.every(s=>s&&s.invoice&&Array.isArray(s.payments))){notice('INVALID FILE','The data inside this backup is damaged.');return}
+  const when=b.created?fmtDT(b.created):'unknown date';
+  if(!confirm('Restore the backup from '+when+'?\n\nProducts: '+d.products.length+'\nInvoices: '+d.sales.length+'\n\nThis REPLACES all current products, sales and reports on this device. This cannot be undone.'))return;
+  const tx=DB.transaction(BK_STORES,'readwrite');
+  BK_STORES.forEach(s=>tx.objectStore(s).clear());
+  d.products.forEach(x=>tx.objectStore('products').put(x));d.sales.forEach(x=>tx.objectStore('sales').put(x));(d.shifts||[]).forEach(x=>tx.objectStore('shifts').put(x));(d.audit||[]).forEach(x=>tx.objectStore('audit').add(x));(d.meta||[]).forEach(x=>tx.objectStore('meta').put(x));
+  tx.oncomplete=()=>{location.reload()};
+  tx.onerror=tx.onabort=()=>notice('RESTORE FAILED','Nothing was changed. Please try again.');
+ };
+ rd.readAsText(f);e.target.value='';
+});
 // ---- Menu and settings ----
 function closeAll(){$('menuPanel').classList.remove('open');$('setPanel').hidden=true;$('backdrop').hidden=true}
 $('menuBtn').onclick=()=>{closeAll();$('menuPanel').classList.add('open');$('backdrop').hidden=false};
-$('setBtn').onclick=()=>{const was=!$('setPanel').hidden;closeAll();if(!was){$('setPanel').hidden=false;$('backdrop').hidden=false}};
+$('setBtn').onclick=()=>{showBk();const was=!$('setPanel').hidden;closeAll();if(!was){$('setPanel').hidden=false;$('backdrop').hidden=false}};
 const SCREENS={sales:'Sales',products:'Products',reports:'Reports'};let screen='sales';
 function renderMenu(){const n=$('menuList');n.innerHTML='';Object.keys(SCREENS).filter(k=>k!==screen).forEach(k=>{const b=document.createElement('button');b.type='button';b.className='mi';b.textContent=SCREENS[k];b.onclick=()=>showScreen(k);n.appendChild(b)})}
 function showScreen(s){screen=s;$('viewSale').hidden=s!=='sales';$('viewProducts').hidden=s!=='products';$('viewReports').hidden=s!=='reports';closeAll();renderMenu();if(s==='reports')renderReports();window.scrollTo(0,0)}
@@ -560,7 +599,7 @@ function wireEye(b,i){b.onclick=()=>{const s=i.type==='password';i.type=s?'text'
 wireEye($('lgEye'),$('lgPass'));wireEye($('rsEye'),$('rsPass'));
 $('lgEye').innerHTML=ICON.eye;$('rsEye').innerHTML=ICON.eye;$('menuBtn').innerHTML=ICON.menu;$('setBtn').innerHTML=ICON.gear;
 function showLogin(){closeAll();$('lgUser').value='';$('lgPass').value='';$('lgPass').type='password';$('lgEye').innerHTML=ICON.eye;lgMsg(users.length?'':'First time here: the username and password you enter will create the owner account.');$('lgBtn').textContent=users.length?'Sign in':'Create owner account';document.body.classList.add('auth')}
-function enterApp(u){currentUser=u;try{sessionStorage.setItem('ab_user',u.username)}catch(e){}$('who').textContent=u.name;showScreen('sales');ensureShift().then(()=>{if(screen==='reports')renderReports()}).catch(()=>{});document.body.classList.remove('auth')}
+function enterApp(u){currentUser=u;try{localStorage.setItem('ab_user',u.username)}catch(e){}$('who').textContent=u.name;showScreen('sales');ensureShift().then(()=>{if(screen==='reports')renderReports()}).catch(()=>{});document.body.classList.remove('auth')}
 $('lgBtn').onclick=async()=>{
  if(!authReady){lgMsg('Loading… try again in a moment.');return}
  const un=$('lgUser').value.trim().toLowerCase(),pw=$('lgPass').value;
@@ -610,7 +649,7 @@ $('recBtn').onclick=async()=>{
  if(!confirm('Create a new recovery code? The old one will stop working.'))return;
  try{const u=currentUser,c=await setRecovery(u);await saveUser(u);closeAll();showCode(c,'NEW RECOVERY CODE')}catch(e){closeAll();notice('ERROR','Could not create a recovery code. Try again.')}
 };
-$('signOut').onclick=()=>{if(cart.size&&!confirm('Sign out and clear the current invoice?'))return;currentUser=null;try{sessionStorage.removeItem('ab_user')}catch(e){}resetInvoice();showLogin()};
+$('signOut').onclick=()=>{if(cart.size&&!confirm('Sign out and clear the current invoice?'))return;currentUser=null;try{localStorage.removeItem('ab_user')}catch(e){}resetInvoice();showLogin()};
 // ---- Start ----
 renderCart();
 (async()=>{
@@ -622,7 +661,7 @@ renderCart();
   invoiceNo=Math.max(inv?inv.value:1,...sales.map(s=>(parseInt(String(s.invoice).replace(/\D/g,''),10)||0)+1),1);
   users=await req(db.transaction('users').objectStore('users').getAll());
   shiftList=await req(db.transaction('shifts').objectStore('shifts').getAll());shift=shiftList.find(x=>!x.endedAt)||null;authReady=true;
-  let su=null;try{su=sessionStorage.getItem('ab_user')}catch(e){}
+  let su=null;try{su=localStorage.getItem('ab_user')}catch(e){}
   const cu=users.find(x=>x.username===su);if(cu)enterApp(cu);else showLogin();
  }catch(e){lgMsg('Database error. Close the app and open it again.')}
  if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
