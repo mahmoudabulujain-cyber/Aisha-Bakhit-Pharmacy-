@@ -77,6 +77,8 @@ dialog .lf:first-of-type{margin-top:4px}
 .kv{display:flex;justify-content:space-between;padding:7px 0;font-size:14px}.kv span{color:var(--mute)}.kv.t{border-top:1px solid var(--sep);margin-top:4px;padding-top:10px;font-size:16px}.kv.t span{color:var(--ink)}
 #viewReports .pillbtn{margin-top:8px}
 .bkinfo{font-size:11px;color:var(--mute);text-align:center;margin:0 0 10px}.pop{max-height:calc(100vh - 90px);overflow:auto}
+.lrow2{display:flex;gap:10px;align-items:center}#lgBtn{flex:1;width:auto!important}#lgFp{flex:none;width:56px!important;height:56px;padding:0!important;border-radius:50%!important;background:var(--field);display:flex;align-items:center;justify-content:center}
+[hidden]{display:none!important}
 </style>
 </head>
 <body class="auth">
@@ -86,11 +88,12 @@ dialog .lf:first-of-type{margin-top:4px}
   <div class="lrow"><button class="ic themeBtn" type="button" aria-label="Switch light and dark mode"></button><div class="llogo"><img src="icon-192.png" alt="Pharmacy logo"></div></div>
   <div class="lhead"><b>Aisha Bakhit Pharmacy</b><small>mahmoud abu eyad</small></div>
   <div class="lf"><label for="lgUser">Username</label><input class="fld" id="lgUser" type="text" autocomplete="username" autocapitalize="none" spellcheck="false"></div>
-  <div class="lf"><label for="lgPass">Password</label><div class="pw"><input class="fld" id="lgPass" type="password" autocomplete="current-password" autocapitalize="none" spellcheck="false"><button class="eye" id="lgEye" type="button" aria-label="Show password"></button></div></div>
+  <div class="lf"><label for="lgPass" id="lgPassLbl">PIN</label><div class="pw"><input class="fld" id="lgPass" type="password" inputmode="numeric" maxlength="4" autocomplete="off" autocapitalize="none" spellcheck="false"><button class="eye" id="lgEye" type="button" aria-label="Show PIN"></button></div></div>
+  <div class="lf" id="lgPass2W" hidden><label for="lgPass2">Confirm PIN</label><input class="fld" id="lgPass2" type="password" inputmode="numeric" maxlength="4" autocomplete="off"></div>
   <p id="lgMsg" role="alert"></p>
  </div>
- <div class="lband"><button id="lgBtn" type="button">Sign in</button><button id="lgForgot" type="button">Forgot password?</button></div>
-</div><div class="ver">Version 3.3</div></div>
+ <div class="lband"><div class="lrow2"><button id="lgBtn" type="button">Sign in</button><button id="lgFp" type="button" aria-label="Sign in with fingerprint" hidden></button></div><button id="lgForgot" type="button">Forgot PIN?</button></div>
+</div><div class="ver">Version 3.4</div></div>
 
 <div class="win" id="app">
  <div class="top">
@@ -143,17 +146,19 @@ dialog .lf:first-of-type{margin-top:4px}
 <div class="pop" id="setPanel" hidden>
  <div class="sg"><small>Signed in as</small><b id="who"></b></div>
  <div class="sg row"><span>Dark mode</span><button class="sw" id="darkSw" type="button" role="switch" aria-checked="false" aria-label="Dark mode"><i></i></button></div>
+ <div class="sg row" id="fpRow" hidden><span>Fingerprint login</span><button class="sw" id="fpSw" type="button" role="switch" aria-checked="false" aria-label="Fingerprint login"><i></i></button></div>
  <button class="pillbtn alt" id="bkBtn" type="button" style="margin-bottom:8px">Backup data</button>
  <button class="pillbtn alt" id="restoreBtn" type="button" style="margin-bottom:6px">Restore backup</button>
  <div class="bkinfo" id="bkInfo"></div>
  <input type="file" id="restoreFile" accept=".json,application/json" hidden>
+ <button class="pillbtn alt" id="pinBtn" type="button" style="margin-bottom:8px">Change PIN</button>
  <button class="pillbtn alt" id="recBtn" type="button" style="margin-bottom:8px">Recovery code</button>
  <button class="pillbtn" id="signOut" type="button">Sign out</button>
 </div>
 <dialog id="resetDialog"><div class="modal"><h2>RESET PASSWORD</h2>
  <div class="lf"><label for="rsUser">Username</label><input class="fld" id="rsUser" type="text" autocapitalize="none" spellcheck="false"></div>
  <div class="lf"><label for="rsCode">Recovery code</label><input class="fld" id="rsCode" type="text" autocapitalize="characters" spellcheck="false" placeholder="XXXX-XXXX-XXXX"></div>
- <div class="lf"><label for="rsPass">New password</label><div class="pw"><input class="fld" id="rsPass" type="password" autocapitalize="none" spellcheck="false"><button class="eye" id="rsEye" type="button" aria-label="Show password"></button></div></div>
+ <div class="lf"><label for="rsPass">New PIN (4 digits)</label><div class="pw"><input class="fld" id="rsPass" type="password" inputmode="numeric" maxlength="4" autocomplete="off"><button class="eye" id="rsEye" type="button" aria-label="Show password"></button></div></div>
  <p class="err" id="rsMsg" role="alert"></p>
  <div class="acts2"><button class="pillbtn alt" id="rsCancel" type="button">Cancel</button><button class="pillbtn" id="rsOk" type="button">Reset</button></div>
 </div></dialog>
@@ -161,6 +166,13 @@ dialog .lf:first-of-type{margin-top:4px}
  <div class="code" id="codeText"></div>
  <p>Write it down or take a screenshot now. It is shown only once, and it is the only way to reset the owner password without losing data.</p>
  <div class="acts2"><button class="pillbtn alt" id="codeCopy" type="button">Copy</button><button class="pillbtn" id="codeOk" type="button">I saved it</button></div>
+</div></dialog>
+<dialog id="pinDialog"><div class="modal"><h2 id="pinTitle">CHANGE PIN</h2>
+ <div class="lf" id="pdCurW"><label for="pdCur">Current PIN</label><input class="fld" id="pdCur" type="password" inputmode="numeric" maxlength="4" autocomplete="off"></div>
+ <div class="lf"><label for="pdNew">New PIN (4 digits)</label><input class="fld" id="pdNew" type="password" inputmode="numeric" maxlength="4" autocomplete="off"></div>
+ <div class="lf"><label for="pdNew2">Confirm new PIN</label><input class="fld" id="pdNew2" type="password" inputmode="numeric" maxlength="4" autocomplete="off"></div>
+ <p class="err" id="pdMsg" role="alert"></p>
+ <div class="acts2"><button class="pillbtn alt" id="pdCancel" type="button">Cancel</button><button class="pillbtn" id="pdOk" type="button">Save PIN</button></div>
 </div></dialog>
 <dialog id="epDialog"><div class="modal"><h2>EDIT PRICE</h2>
  <input class="fld" id="epQ" type="search" placeholder="Search the product…" autocomplete="off">
@@ -187,6 +199,7 @@ const ICON={
  moon:svg('<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>'),
  sun:svg('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'),
  menu:svg('<path d="M3 6h18M3 12h18M3 18h18"/>'),
+ fp:svg('<path d="M12 11v2.5c0 2.2-.5 4.3-1.5 6.2"/><path d="M8.5 11.5a3.5 3.5 0 0 1 7 0v1.2c0 1.9-.3 3.7-.9 5.3"/><path d="M5.5 11.5a6.5 6.5 0 0 1 13 0v1c0 1.5-.1 2.9-.4 4.2"/><path d="M3 14c.4-1.4.5-2.6.5-4a8.5 8.5 0 0 1 17 0"/><path d="M8 21c.6-1.1 1-2.3 1.2-3.5"/>'),
  gear:svg('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>')
 };
 function notice(t,x){$('noticeTitle').textContent=t;$('noticeText').textContent=x;$('noticeDialog').showModal()}
@@ -575,13 +588,15 @@ $('restoreFile').addEventListener('change',e=>{
 // ---- Menu and settings ----
 function closeAll(){$('menuPanel').classList.remove('open');$('setPanel').hidden=true;$('backdrop').hidden=true}
 $('menuBtn').onclick=()=>{closeAll();$('menuPanel').classList.add('open');$('backdrop').hidden=false};
-$('setBtn').onclick=()=>{showBk();const was=!$('setPanel').hidden;closeAll();if(!was){$('setPanel').hidden=false;$('backdrop').hidden=false}};
+$('setBtn').onclick=()=>{showBk();syncSettings();const was=!$('setPanel').hidden;closeAll();if(!was){$('setPanel').hidden=false;$('backdrop').hidden=false}};
 const SCREENS={sales:'Sales',products:'Products',reports:'Reports'};let screen='sales';
 function renderMenu(){const n=$('menuList');n.innerHTML='';Object.keys(SCREENS).filter(k=>k!==screen).forEach(k=>{const b=document.createElement('button');b.type='button';b.className='mi';b.textContent=SCREENS[k];b.onclick=()=>showScreen(k);n.appendChild(b)})}
 function showScreen(s){screen=s;$('viewSale').hidden=s!=='sales';$('viewProducts').hidden=s!=='products';$('viewReports').hidden=s!=='reports';closeAll();renderMenu();if(s==='reports')renderReports();window.scrollTo(0,0)}
 $('backdrop').onclick=closeAll;renderMenu();
-// ---- Accounts and login ----
+// ---- Accounts, PIN and fingerprint ----
+let fpAvail=false,codeAfter=null,pdForce=false;
 const hex=b=>[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
+const rnd=n=>crypto.getRandomValues(new Uint8Array(n));
 async function hashPw(pw,saltHex){
  const salt=Uint8Array.from(saltHex.match(/../g).map(h=>parseInt(h,16)));
  const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveBits']);
@@ -589,60 +604,133 @@ async function hashPw(pw,saltHex){
 }
 const lgMsg=t=>{$('lgMsg').textContent=t};
 const normCode=c=>String(c||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
-function newCode(){const A='23456789ABCDEFGHJKMNPQRSTUVWXYZ',r=crypto.getRandomValues(new Uint8Array(12));let s='';r.forEach((v,i)=>{s+=A[v%A.length];if(i%4===3&&i<11)s+='-'});return s}
-async function setRecovery(u){const code=newCode();u.recSalt=hex(crypto.getRandomValues(new Uint8Array(16)));u.recHash=await hashPw(normCode(code),u.recSalt);return code}
+function newCode(){const A='23456789ABCDEFGHJKMNPQRSTUVWXYZ',r=rnd(12);let s='';r.forEach((v,i)=>{s+=A[v%A.length];if(i%4===3&&i<11)s+='-'});return s}
+async function setRecovery(u){const code=newCode();u.recSalt=hex(rnd(16));u.recHash=await hashPw(normCode(code),u.recSalt);return code}
 const saveUser=u=>new Promise((res,rej)=>{const tx=DB.transaction('users','readwrite');tx.objectStore('users').put(u);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});
-function showCode(code,title){$('codeTitle').textContent=title||'RECOVERY CODE';$('codeText').textContent=code;$('codeCopy').textContent='Copy';$('codeDialog').showModal()}
-$('codeOk').onclick=()=>{$('codeDialog').close();$('codeText').textContent=''};
+function showCode(code,title,after){codeAfter=after||null;$('codeTitle').textContent=title||'RECOVERY CODE';$('codeText').textContent=code;$('codeCopy').textContent='Copy';$('codeDialog').showModal()}
+$('codeOk').onclick=()=>{$('codeDialog').close();$('codeText').textContent='';const a=codeAfter;codeAfter=null;if(a)a()};
 $('codeCopy').onclick=async()=>{try{await navigator.clipboard.writeText($('codeText').textContent);$('codeCopy').textContent='Copied'}catch(e){$('codeCopy').textContent='Select and copy'}};
-function wireEye(b,i){b.onclick=()=>{const s=i.type==='password';i.type=s?'text':'password';b.innerHTML=s?ICON.eyeoff:ICON.eye;b.setAttribute('aria-label',s?'Hide password':'Show password')}}
+function wireEye(b,i){b.onclick=()=>{const s=i.type==='password';i.type=s?'text':'password';b.innerHTML=s?ICON.eyeoff:ICON.eye;b.setAttribute('aria-label',s?'Hide':'Show')}}
 wireEye($('lgEye'),$('lgPass'));wireEye($('rsEye'),$('rsPass'));
-$('lgEye').innerHTML=ICON.eye;$('rsEye').innerHTML=ICON.eye;$('menuBtn').innerHTML=ICON.menu;$('setBtn').innerHTML=ICON.gear;
-function showLogin(){closeAll();$('lgUser').value='';$('lgPass').value='';$('lgPass').type='password';$('lgEye').innerHTML=ICON.eye;lgMsg(users.length?'':'First time here: the username and password you enter will create the owner account.');$('lgBtn').textContent=users.length?'Sign in':'Create owner account';document.body.classList.add('auth')}
+$('lgEye').innerHTML=ICON.eye;$('rsEye').innerHTML=ICON.eye;$('menuBtn').innerHTML=ICON.menu;$('setBtn').innerHTML=ICON.gear;$('lgFp').innerHTML=ICON.fp;
+// wrong-PIN lockout: 5 wrong tries, then wait 15 min (doubles each time, max 4 hours)
+const lockKey=u=>'ab_lock_'+u;
+function getLock(u){try{return JSON.parse(localStorage.getItem(lockKey(u)))||{fails:0,level:0,until:0}}catch(e){return {fails:0,level:0,until:0}}}
+const setLock=(u,o)=>{try{localStorage.setItem(lockKey(u),JSON.stringify(o))}catch(e){}};
+const clearLock=u=>{try{localStorage.removeItem(lockKey(u))}catch(e){}};
+const lockLeft=u=>Math.max(0,getLock(u).until-Date.now());
+function lockMsg(u){const m=Math.ceil(lockLeft(u)/60000);return 'Too many wrong attempts. Try again in '+m+' minute'+(m===1?'':'s')+'.'}
+function registerFail(u){const L=getLock(u);L.fails++;let left=5-L.fails;if(L.fails>=5){L.level++;L.until=Date.now()+Math.min(15*Math.pow(2,L.level-1),240)*60000;L.fails=0;left=0}setLock(u,L);return left}
+// digits-only boxes
+function digitsOnly(id){$(id).addEventListener('input',()=>{if($(id).inputMode==='numeric')$(id).value=$(id).value.replace(/\D/g,'')})}
+['lgPass','lgPass2','rsPass','pdCur','pdNew','pdNew2'].forEach(digitsOnly);
+// fingerprint (WebAuthn, phone fingerprint)
+const b64=buf=>btoa(String.fromCharCode(...new Uint8Array(buf)));
+const unb64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+async function fpSupported(){try{return !!(window.PublicKeyCredential&&window.isSecureContext&&await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable())}catch(e){return false}}
+async function enableFp(u){
+ const cred=await navigator.credentials.create({publicKey:{challenge:rnd(32),rp:{name:'AB POS',id:location.hostname},user:{id:new TextEncoder().encode(u.username).slice(0,64),name:u.username,displayName:u.name},pubKeyCredParams:[{type:'public-key',alg:-7},{type:'public-key',alg:-257}],authenticatorSelection:{authenticatorAttachment:'platform',userVerification:'required',residentKey:'discouraged'},timeout:60000,attestation:'none'}});
+ u.credId=b64(cred.rawId);await saveUser(u);try{localStorage.setItem('ab_fp_user',u.username)}catch(e){}
+}
+async function fpLogin(){
+ let hint='';try{hint=localStorage.getItem('ab_fp_user')||''}catch(e){}
+ const name=$('lgUser').value.trim().toLowerCase()||hint,u=users.find(x=>x.username===name&&x.credId);
+ if(!u){lgMsg('Fingerprint is not turned on for this username on this phone.');return}
+ try{await navigator.credentials.get({publicKey:{challenge:rnd(32),rpId:location.hostname,allowCredentials:[{type:'public-key',id:unb64(u.credId),transports:['internal']}],userVerification:'required',timeout:60000}});enterApp(u)}
+ catch(e){lgMsg('Fingerprint was not accepted. Use your PIN.')}
+}
+$('lgFp').onclick=fpLogin;
+function offerFp(u){
+ if(!confirm('Turn on fingerprint login on this phone?\nYou will use your phone fingerprint instead of typing the PIN.'))return;
+ enableFp(u).then(()=>{syncSettings();notice('FINGERPRINT','Fingerprint login is on.')}).catch(()=>notice('FINGERPRINT','Fingerprint could not be turned on. Make sure a screen lock and a fingerprint are set up in the phone settings, then try again from Settings.'))
+}
+function syncSettings(){$('fpRow').hidden=!fpAvail;$('fpSw').setAttribute('aria-checked',String(!!(currentUser&&currentUser.credId)))}
+$('fpSw').onclick=async()=>{
+ if(!currentUser)return;
+ if($('fpSw').getAttribute('aria-checked')==='true'){
+  delete currentUser.credId;await saveUser(currentUser);try{if(localStorage.getItem('ab_fp_user')===currentUser.username)localStorage.removeItem('ab_fp_user')}catch(e){}
+  syncSettings();notice('FINGERPRINT','Fingerprint login is off.');
+ }else{
+  try{await enableFp(currentUser);syncSettings();notice('FINGERPRINT','Fingerprint login is on.')}
+  catch(e){notice('FINGERPRINT','Fingerprint could not be turned on. Make sure a screen lock and a fingerprint are set up in the phone settings.')}
+ }
+};
+// login screen
+function syncLoginMode(){
+ const first=!users.length,u=users.find(x=>x.username===$('lgUser').value.trim().toLowerCase()),legacy=!!(u&&!u.pinHash&&u.hash);
+ $('lgPassLbl').textContent=first?'Choose a PIN (4 digits)':legacy?'Password (old account)':'PIN';
+ $('lgPass').maxLength=legacy?64:4;$('lgPass').inputMode=legacy?'text':'numeric';$('lgPass2W').hidden=!first;
+}
+$('lgUser').addEventListener('input',syncLoginMode);
+function showLogin(){closeAll();$('lgUser').value='';$('lgPass').value='';$('lgPass2').value='';$('lgPass').type='password';$('lgEye').innerHTML=ICON.eye;
+ lgMsg(users.length?'':'First time here: choose a username and a 4-digit PIN. They create the owner account.');
+ $('lgBtn').textContent=users.length?'Sign in':'Create owner account';$('lgForgot').hidden=!users.length;
+ $('lgFp').hidden=!(fpAvail&&users.some(x=>x.credId));syncLoginMode();document.body.classList.add('auth')}
 function enterApp(u){currentUser=u;try{localStorage.setItem('ab_user',u.username)}catch(e){}$('who').textContent=u.name;showScreen('sales');ensureShift().then(()=>{if(screen==='reports')renderReports()}).catch(()=>{});document.body.classList.remove('auth')}
 $('lgBtn').onclick=async()=>{
  if(!authReady){lgMsg('Loading… try again in a moment.');return}
- const un=$('lgUser').value.trim().toLowerCase(),pw=$('lgPass').value;
- if(!un||!pw){lgMsg('Enter your username and password.');return}
+ const un=$('lgUser').value.trim().toLowerCase(),pin=$('lgPass').value;
+ if(!un||!pin){lgMsg('Enter your username and PIN.');return}
  if(!window.crypto||!crypto.subtle){lgMsg('Secure mode is not available. Open the app from its https address.');return}
  $('lgBtn').disabled=true;
  try{
   if(!users.length){
    if(un.length<3||!/^[a-z0-9._-]+$/.test(un)){lgMsg('Username: at least 3 letters or numbers, no spaces.');return}
-   if(pw.length<4){lgMsg('Password must be at least 4 characters.');return}
-   const salt=hex(crypto.getRandomValues(new Uint8Array(16)));
-   const u={username:un,name:$('lgUser').value.trim(),salt,hash:await hashPw(pw,salt),role:'owner',created:new Date().toISOString()};
-   const rcode=await setRecovery(u);
-   await new Promise((res,rej)=>{const tx=DB.transaction('users','readwrite');tx.objectStore('users').put(u);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});
-   users.push(u);enterApp(u);showCode(rcode,'SAVE YOUR RECOVERY CODE');
+   if(!/^\d{4}$/.test(pin)){lgMsg('The PIN must be exactly 4 digits.');return}
+   if(pin!==$('lgPass2').value){lgMsg('The two PINs do not match.');return}
+   const pinSalt=hex(rnd(16));
+   const u={username:un,name:$('lgUser').value.trim(),pinSalt,pinHash:await hashPw(pin,pinSalt),role:'owner',created:new Date().toISOString()};
+   const rcode=await setRecovery(u);await saveUser(u);users.push(u);
+   enterApp(u);showCode(rcode,'SAVE YOUR RECOVERY CODE',()=>{if(fpAvail)offerFp(u)});
   }else{
-   const u=users.find(x=>x.username===un);
-   if(!u||await hashPw(pw,u.salt)!==u.hash){lgMsg('Wrong username or password.');return}
-   enterApp(u);
+   if(lockLeft(un)>0){lgMsg(lockMsg(un));return}
+   const u=users.find(x=>x.username===un);let ok=false,legacy=false;
+   if(u&&u.pinHash)ok=/^\d{4}$/.test(pin)&&await hashPw(pin,u.pinSalt)===u.pinHash;
+   else if(u&&u.hash){ok=await hashPw(pin,u.salt)===u.hash;legacy=ok}
+   if(!ok){const left=registerFail(un);lgMsg(left>0?'Wrong username or PIN. '+left+(left===1?' try':' tries')+' left.':lockMsg(un));return}
+   clearLock(un);enterApp(u);if(legacy)openPin(true);
   }
  }catch(e){lgMsg('Something went wrong. Try again.')}
  finally{$('lgBtn').disabled=false}
 };
 $('lgPass').addEventListener('keydown',e=>{if(e.key==='Enter')$('lgBtn').click()});
-$('lgForgot').onclick=()=>{
- if(!users.length){notice('FORGOT PASSWORD','No account exists yet. Type a username and a password, then tap Create owner account.');return}
- $('rsUser').value=$('lgUser').value;$('rsCode').value='';$('rsPass').value='';$('rsPass').type='password';$('rsEye').innerHTML=ICON.eye;$('rsMsg').textContent='';$('resetDialog').showModal()};
+// forgot PIN (recovery code)
+$('lgForgot').onclick=()=>{$('rsUser').value=$('lgUser').value;$('rsCode').value='';$('rsPass').value='';$('rsPass').type='password';$('rsEye').innerHTML=ICON.eye;$('rsMsg').textContent='';$('resetDialog').showModal()};
 $('rsCancel').onclick=()=>$('resetDialog').close();
 $('rsOk').onclick=async()=>{
- const m=x=>{$('rsMsg').textContent=x},un=$('rsUser').value.trim().toLowerCase(),code=normCode($('rsCode').value),pw=$('rsPass').value;
- if(!un||!code||!pw){m('Fill in the username, recovery code and new password.');return}
- if(pw.length<4){m('New password must be at least 4 characters.');return}
+ const m=x=>{$('rsMsg').textContent=x},un=$('rsUser').value.trim().toLowerCase(),code=normCode($('rsCode').value),pin=$('rsPass').value;
+ if(!un||!code||!pin){m('Fill in the username, recovery code and new PIN.');return}
+ if(!/^\d{4}$/.test(pin)){m('The new PIN must be exactly 4 digits.');return}
  if(!window.crypto||!crypto.subtle){m('Secure mode is not available. Open the app from its https address.');return}
  $('rsOk').disabled=true;
  try{
   const u=users.find(x=>x.username===un);
   if(u&&!u.recHash){m('No recovery code was created for this account.');return}
   if(!u||await hashPw(code,u.recSalt)!==u.recHash){m('Username or recovery code is not correct.');return}
-  u.salt=hex(crypto.getRandomValues(new Uint8Array(16)));u.hash=await hashPw(pw,u.salt);
-  const nc=await setRecovery(u);await saveUser(u);
-  $('resetDialog').close();lgMsg('Password changed. Sign in with your new password.');showCode(nc,'NEW RECOVERY CODE');
+  u.pinSalt=hex(rnd(16));u.pinHash=await hashPw(pin,u.pinSalt);delete u.salt;delete u.hash;
+  const nc=await setRecovery(u);await saveUser(u);clearLock(un);
+  $('resetDialog').close();lgMsg('PIN changed. Sign in with your new PIN.');showCode(nc,'NEW RECOVERY CODE');
  }catch(e){m('Something went wrong. Try again.')}
  finally{$('rsOk').disabled=false}
+};
+// change PIN (also forced once for old accounts that used a password)
+function openPin(force){pdForce=force;$('pdCurW').hidden=force;$('pdCancel').hidden=force;$('pinTitle').textContent=force?'SET YOUR PIN':'CHANGE PIN';['pdCur','pdNew','pdNew2'].forEach(i=>$(i).value='');$('pdMsg').textContent='';$('pinDialog').showModal()}
+$('pinDialog').addEventListener('cancel',e=>{if(pdForce)e.preventDefault()});
+$('pdCancel').onclick=()=>$('pinDialog').close();
+$('pinBtn').onclick=()=>{closeAll();openPin(false)};
+$('pdOk').onclick=async()=>{
+ const m=t=>{$('pdMsg').textContent=t},u=currentUser;if(!u)return;const n=$('pdNew').value;
+ try{
+  if(!pdForce){
+   if(lockLeft(u.username)>0){m(lockMsg(u.username));return}
+   if(!u.pinHash||await hashPw($('pdCur').value,u.pinSalt)!==u.pinHash){const left=registerFail(u.username);m(left>0?'Current PIN is wrong. '+left+(left===1?' try':' tries')+' left.':lockMsg(u.username));return}
+   clearLock(u.username);
+  }
+  if(!/^\d{4}$/.test(n)){m('The new PIN must be exactly 4 digits.');return}
+  if(n!==$('pdNew2').value){m('The two PINs do not match.');return}
+  u.pinSalt=hex(rnd(16));u.pinHash=await hashPw(n,u.pinSalt);delete u.salt;delete u.hash;await saveUser(u);
+  pdForce=false;$('pinDialog').close();notice('PIN SAVED','Your PIN has been saved.');
+ }catch(e){m('Could not save. Try again.')}
 };
 $('recBtn').onclick=async()=>{
  if(!currentUser)return;
@@ -660,7 +748,7 @@ renderCart();
   const inv=await req(db.transaction('meta').objectStore('meta').get('invoiceNo'));
   invoiceNo=Math.max(inv?inv.value:1,...sales.map(s=>(parseInt(String(s.invoice).replace(/\D/g,''),10)||0)+1),1);
   users=await req(db.transaction('users').objectStore('users').getAll());
-  shiftList=await req(db.transaction('shifts').objectStore('shifts').getAll());shift=shiftList.find(x=>!x.endedAt)||null;authReady=true;
+  shiftList=await req(db.transaction('shifts').objectStore('shifts').getAll());shift=shiftList.find(x=>!x.endedAt)||null;fpAvail=await fpSupported();authReady=true;
   let su=null;try{su=localStorage.getItem('ab_user')}catch(e){}
   const cu=users.find(x=>x.username===su);if(cu)enterApp(cu);else showLogin();
  }catch(e){lgMsg('Database error. Close the app and open it again.')}
