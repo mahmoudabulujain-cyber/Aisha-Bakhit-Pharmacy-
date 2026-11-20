@@ -81,6 +81,36 @@ dialog .lf:first-of-type{margin-top:4px}
 [hidden]{display:none!important}
 .pr{border:0;background:transparent;color:var(--mute);font-size:12px;padding:3px 0;display:inline-flex;align-items:center;gap:5px;text-align:left}.pr svg{width:13px;height:13px}.pr.edited{color:var(--ink);font-weight:700}
 .dact{display:flex;gap:8px;margin-top:12px}.dact button{flex:1;border:0;border-radius:14px;padding:12px 6px;font-weight:700;font-size:13px;background:var(--btn);color:var(--ink)}.dact .x2{background:var(--card);color:var(--err)}
+.pt{font-size:11px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--mute);padding-left:2px;line-height:1.2}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes popIn{from{opacity:0;transform:translateY(8px) scale(.95)}to{opacity:1;transform:none}}
+@keyframes popTR{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
+@keyframes slideRow{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
+@keyframes bump{0%{transform:scale(1)}40%{transform:scale(1.35)}100%{transform:scale(1)}}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(47,163,107,.55)}70%{box-shadow:0 0 0 7px rgba(47,163,107,0)}100%{box-shadow:0 0 0 0 rgba(47,163,107,0)}}
+@keyframes draw{to{stroke-dashoffset:0}}
+#viewSale,#viewProducts,#viewReports{animation:fadeUp .3s cubic-bezier(.2,.8,.2,1) backwards}
+body.auth .lcard{animation:popIn .4s cubic-bezier(.2,.8,.2,1) backwards}
+body:not(.auth) .win{animation:fadeUp .4s cubic-bezier(.2,.8,.2,1) backwards}
+dialog[open]{animation:popIn .24s cubic-bezier(.2,.8,.2,1) backwards}
+dialog[open]::backdrop{animation:fadeIn .24s ease backwards}
+#backdrop{animation:fadeIn .2s ease backwards}
+.side.open .mi{animation:slideRow .3s cubic-bezier(.2,.8,.2,1) backwards}
+.pop{transform-origin:top right}.pop:not([hidden]){animation:popTR .18s cubic-bezier(.2,.8,.2,1) backwards}
+#results:not([hidden]),#pResults:not([hidden]){animation:fadeUp .2s ease backwards}
+.ci.new{animation:slideRow .28s cubic-bezier(.2,.8,.2,1) backwards}
+.qn.bump{display:inline-block;animation:bump .25s ease}
+.prow{animation:fadeUp .22s ease backwards}
+.det{animation:fadeUp .22s ease backwards}
+.pt.swap{animation:fadeUp .25s ease backwards}
+.dot::before{animation:pulse 2.4s ease-out infinite}.dot.off::before{animation:none}
+button{transition:transform .12s ease,background-color .2s ease,border-color .2s ease,opacity .2s ease}
+button:active:not(:disabled){transform:scale(.96)}
+html.theming,html.theming *{transition:background-color .3s ease,color .3s ease,border-color .3s ease!important}
+.okc{display:flex;justify-content:center;margin:0 0 10px}.okc:empty{display:none}
+.okc1{stroke-dasharray:151;stroke-dashoffset:151;animation:draw .5s ease forwards}.okc2{stroke-dasharray:40;stroke-dashoffset:40;animation:draw .35s ease .35s forwards}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-delay:0s!important;animation-iteration-count:1!important;transition-duration:.001ms!important}}
 </style>
 </head>
 <body class="auth">
@@ -95,14 +125,14 @@ dialog .lf:first-of-type{margin-top:4px}
   <p id="lgMsg" role="alert"></p>
  </div>
  <div class="lband"><div class="lrow2"><button id="lgBtn" type="button">Sign in</button><button id="lgFp" type="button" aria-label="Sign in with fingerprint" hidden></button></div><button id="lgForgot" type="button">Forgot PIN?</button></div>
-</div><div class="ver">Version 3.6</div></div>
+</div><div class="ver">Version 3.7</div></div>
 
 <div class="win" id="app">
  <div class="top">
   <div class="tl">
    <button class="ic" id="menuBtn" type="button" aria-label="Menu"></button>
    <div class="brand"><span class="lg"><img src="icon-192.png" alt="Pharmacy logo"></span>
-    <span class="nm">Aisha Bakhit Pharmacy<button class="dot" id="dot" type="button" aria-label="Connection status"></button><small id="connTxt"></small></span></div>
+    <span class="nm">Aisha Bakhit Pharmacy<button class="dot" id="dot" type="button" aria-label="Connection status"></button><small id="connTxt"></small></span><span class="pt" id="pageTitle">Sales</span></div>
   </div>
   <button class="ic" id="setBtn" type="button" aria-label="Settings"></button>
  </div>
@@ -209,7 +239,7 @@ dialog .lf:first-of-type{margin-top:4px}
  <div class="box" id="xlsRows" style="max-height:250px;overflow:auto"></div>
  <div class="acts2" style="margin-top:12px"><button class="pillbtn alt" id="xlsCancel" type="button">Cancel</button><button class="pillbtn" id="xlsOk" type="button">Import</button></div>
 </div></dialog>
-<dialog id="noticeDialog"><div class="modal"><h2 id="noticeTitle"></h2><p id="noticeText"></p><button class="pillbtn" id="noticeOk" type="button">OK</button></div></dialog>
+<dialog id="noticeDialog"><div class="modal"><div class="okc" id="noticeIcon"></div><h2 id="noticeTitle"></h2><p id="noticeText"></p><button class="pillbtn" id="noticeOk" type="button">OK</button></div></dialog>
 
 <script>
 const $=id=>document.getElementById(id);
@@ -225,12 +255,14 @@ const ICON={
  fp:svg('<path d="M12 11v2.5c0 2.2-.5 4.3-1.5 6.2"/><path d="M8.5 11.5a3.5 3.5 0 0 1 7 0v1.2c0 1.9-.3 3.7-.9 5.3"/><path d="M5.5 11.5a6.5 6.5 0 0 1 13 0v1c0 1.5-.1 2.9-.4 4.2"/><path d="M3 14c.4-1.4.5-2.6.5-4a8.5 8.5 0 0 1 17 0"/><path d="M8 21c.6-1.1 1-2.3 1.2-3.5"/>'),
  gear:svg('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>')
 };
-function notice(t,x){$('noticeTitle').textContent=t;$('noticeText').textContent=x;$('noticeDialog').showModal()}
+const CHECK='<svg viewBox="0 0 52 52" width="54" height="54" aria-hidden="true"><circle class="okc1" cx="26" cy="26" r="24" fill="none" stroke="var(--on)" stroke-width="3"/><path class="okc2" d="M15 27l8 8 15-17" fill="none" stroke="var(--on)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const GOOD=/^(SALE SAVED|PRODUCT ADDED|PRICE UPDATED|IMPORT DONE|SHIFT ENDED|BACKUP SAVED|PIN SAVED|PAYMENT UPDATED|INVOICE CANCELLED)$/;
+function notice(t,x){$('noticeIcon').innerHTML=GOOD.test(t)?CHECK:'';$('noticeTitle').textContent=t;$('noticeText').textContent=x;$('noticeDialog').showModal()}
 $('noticeOk').onclick=()=>$('noticeDialog').close();
 // ---- Theme ----
-function setTheme(t){document.documentElement.dataset.theme=t;document.querySelectorAll('.themeBtn').forEach(b=>b.innerHTML=t==='dark'?ICON.sun:ICON.moon);$('darkSw').setAttribute('aria-checked',String(t==='dark'));try{localStorage.setItem('ab_theme',t)}catch(e){}}
+function setTheme(t,anim){const R=document.documentElement;if(anim){R.classList.add('theming');setTimeout(()=>R.classList.remove('theming'),450)}R.dataset.theme=t;document.querySelectorAll('.themeBtn').forEach(b=>b.innerHTML=t==='dark'?ICON.sun:ICON.moon);$('darkSw').setAttribute('aria-checked',String(t==='dark'));try{localStorage.setItem('ab_theme',t)}catch(e){}}
 let saved='light';try{saved=localStorage.getItem('ab_theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch(e){}
-const flip=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
+const flip=()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark',true);
 setTheme(saved);document.querySelectorAll('.themeBtn').forEach(b=>b.onclick=flip);$('darkSw').onclick=flip;
 // ---- Connection dot ----
 let dotTimer;
@@ -268,21 +300,29 @@ $('q').addEventListener('input',renderResults);
 // ---- Cart ----
 const cart=new Map();
 const cartTotal=()=>{let s=0;cart.forEach(l=>{s+=(Number(l.price)||0)*l.q});return s};
-function addToCart(p){const l=cart.get(p.id);if(l)l.q++;else cart.set(p.id,{p,q:1,price:Number(p.price)||0,orig:Number(p.price)||0});renderCart()}
+let shownTotal=0,tweenId=0;
+const reduceMotion=()=>!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
+function tweenTotal(to){
+ const el=$('total'),payBtn=$('pay'),from=shownTotal,id=++tweenId;
+ const paint=v=>{shownTotal=v;const r=Math.round(v*100)/100;el.textContent=money(r);payBtn.textContent=cart.size?'Pay '+money(r):'Pay'};
+ if(reduceMotion()||from===to){paint(to);return}
+ const t0=performance.now(),dur=260;
+ (function f(now){if(id!==tweenId)return;const k=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-k,3);if(k<1){paint(Math.round(from+(to-from)*e));requestAnimationFrame(f)}else paint(to)})(t0);
+}
+function addToCart(p){const l=cart.get(p.id);if(l){l.q++;l.bump=true}else cart.set(p.id,{p,q:1,price:Number(p.price)||0,orig:Number(p.price)||0,fresh:true});renderCart()}
 function renderCart(){
  const box=$('cart');box.innerHTML='';let count=0;
  cart.forEach(l=>{count+=l.q});
  if(!cart.size)box.innerHTML='<div class="empty">Cart is empty. Tap a product to add it.</div>';
  cart.forEach((l,id)=>{
-  const r=document.createElement('div');r.className='ci';
+  const r=document.createElement('div');r.className='ci';if(l.fresh){r.classList.add('new');delete l.fresh}
   const n=document.createElement('div');n.className='n';const b=document.createElement('b');b.textContent=l.p.name;const s=document.createElement('button');s.type='button';s.className='pr'+(l.price!==l.orig?' edited':'');s.textContent=(l.price>0?money(l.price):'Set price')+(l.price!==l.orig&&l.orig>0?' (list '+money(l.orig)+')':'');s.insertAdjacentHTML('beforeend',ICON.pen);s.onclick=()=>openLinePrice(l);n.append(b,s);
-  const m=document.createElement('button');m.className='q';m.type='button';m.textContent='−';m.setAttribute('aria-label','Decrease');m.onclick=()=>{l.q>1?l.q--:cart.delete(id);renderCart()};
-  const c=document.createElement('span');c.className='qn';c.textContent=l.q;
-  const a=document.createElement('button');a.className='q';a.type='button';a.textContent='+';a.setAttribute('aria-label','Increase');a.onclick=()=>{l.q++;renderCart()};
+  const m=document.createElement('button');m.className='q';m.type='button';m.textContent='−';m.setAttribute('aria-label','Decrease');m.onclick=()=>{if(l.q>1){l.q--;l.bump=true}else cart.delete(id);renderCart()};
+  const c=document.createElement('span');c.className='qn';c.textContent=l.q;if(l.bump){c.classList.add('bump');delete l.bump}
+  const a=document.createElement('button');a.className='q';a.type='button';a.textContent='+';a.setAttribute('aria-label','Increase');a.onclick=()=>{l.q++;l.bump=true;renderCart()};
   const t=document.createElement('span');t.className='lt';t.textContent=money((Number(l.price)||0)*l.q);
   r.append(n,m,c,a,t);box.appendChild(r)});
- $('cartTitle').textContent='CART'+(count?' ('+count+')':'');$('total').textContent=money(cartTotal());
- $('pay').textContent=cart.size?'Pay '+money(cartTotal()):'Pay';
+ $('cartTitle').textContent='CART'+(count?' ('+count+')':'');tweenTotal(cartTotal());
  refit();
 }
 $('clear').onclick=()=>{if(cart.size&&confirm('Clear the whole cart?')){cart.clear();renderCart()}};
@@ -682,8 +722,8 @@ function closeAll(){$('menuPanel').classList.remove('open');$('setPanel').hidden
 $('menuBtn').onclick=()=>{closeAll();$('menuPanel').classList.add('open');$('backdrop').hidden=false};
 $('setBtn').onclick=()=>{showBk();syncSettings();const was=!$('setPanel').hidden;closeAll();if(!was){$('setPanel').hidden=false;$('backdrop').hidden=false}};
 const SCREENS={sales:'Sales',products:'Products',reports:'Reports'};let screen='sales';
-function renderMenu(){const n=$('menuList');n.innerHTML='';Object.keys(SCREENS).filter(k=>k!==screen).forEach(k=>{const b=document.createElement('button');b.type='button';b.className='mi';b.textContent=SCREENS[k];b.onclick=()=>showScreen(k);n.appendChild(b)})}
-function showScreen(s){screen=s;$('viewSale').hidden=s!=='sales';$('viewProducts').hidden=s!=='products';$('viewReports').hidden=s!=='reports';closeAll();renderMenu();if(s==='reports')renderReports();window.scrollTo(0,0)}
+function renderMenu(){const n=$('menuList');n.innerHTML='';Object.keys(SCREENS).filter(k=>k!==screen).forEach(k=>{const b=document.createElement('button');b.type='button';b.className='mi';b.textContent=SCREENS[k];b.onclick=()=>showScreen(k);b.style.animationDelay=(n.children.length*55+90)+'ms';n.appendChild(b)})}
+function showScreen(s){screen=s;{const el=$('pageTitle');el.textContent=SCREENS[s];el.classList.remove('swap');void el.offsetWidth;el.classList.add('swap')}$('viewSale').hidden=s!=='sales';$('viewProducts').hidden=s!=='products';$('viewReports').hidden=s!=='reports';closeAll();renderMenu();if(s==='reports')renderReports();window.scrollTo(0,0)}
 $('backdrop').onclick=closeAll;renderMenu();
 // ---- Accounts, PIN and fingerprint ----
 let fpAvail=false,codeAfter=null,pdForce=false;
