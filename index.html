@@ -79,6 +79,8 @@ dialog .lf:first-of-type{margin-top:4px}
 .bkinfo{font-size:11px;color:var(--mute);text-align:center;margin:0 0 10px}.pop{max-height:calc(100vh - 90px);overflow:auto}
 .lrow2{display:flex;gap:10px;align-items:center}#lgBtn{flex:1;width:auto!important}#lgFp{flex:none;width:56px!important;height:56px;padding:0!important;border-radius:50%!important;background:var(--field);display:flex;align-items:center;justify-content:center}
 [hidden]{display:none!important}
+.pr{border:0;background:transparent;color:var(--mute);font-size:12px;padding:3px 0;display:inline-flex;align-items:center;gap:5px;text-align:left}.pr svg{width:13px;height:13px}.pr.edited{color:var(--ink);font-weight:700}
+.dact{display:flex;gap:8px;margin-top:12px}.dact button{flex:1;border:0;border-radius:14px;padding:12px 6px;font-weight:700;font-size:13px;background:var(--btn);color:var(--ink)}.dact .x2{background:var(--card);color:var(--err)}
 </style>
 </head>
 <body class="auth">
@@ -93,7 +95,7 @@ dialog .lf:first-of-type{margin-top:4px}
   <p id="lgMsg" role="alert"></p>
  </div>
  <div class="lband"><div class="lrow2"><button id="lgBtn" type="button">Sign in</button><button id="lgFp" type="button" aria-label="Sign in with fingerprint" hidden></button></div><button id="lgForgot" type="button">Forgot PIN?</button></div>
-</div><div class="ver">Version 3.4</div></div>
+</div><div class="ver">Version 3.6</div></div>
 
 <div class="win" id="app">
  <div class="top">
@@ -174,6 +176,26 @@ dialog .lf:first-of-type{margin-top:4px}
  <p class="err" id="pdMsg" role="alert"></p>
  <div class="acts2"><button class="pillbtn alt" id="pdCancel" type="button">Cancel</button><button class="pillbtn" id="pdOk" type="button">Save PIN</button></div>
 </div></dialog>
+<dialog id="lpDialog"><div class="modal"><h2>CHANGE PRICE</h2>
+ <p id="lpName" style="font-size:14px;margin:0 0 2px;font-weight:700"></p><p id="lpList" style="font-size:12px;color:var(--mute);margin:0 0 10px"></p>
+ <input class="fld" id="lpPrice" type="number" min="0" step="any" inputmode="decimal" placeholder="Price for this sale">
+ <p class="err" id="lpMsg" role="alert"></p>
+ <div class="acts2"><button class="pillbtn alt" id="lpCancel" type="button">Cancel</button><button class="pillbtn" id="lpOk" type="button">Confirm</button></div>
+</div></dialog>
+<dialog id="cxDialog"><div class="modal"><h2>CANCEL INVOICE</h2>
+ <p id="cxInfo" style="font-size:14px;margin:0 0 6px;font-weight:700"></p>
+ <p style="font-size:12px;color:var(--mute);margin:0 0 10px">The invoice will be removed from the shift totals.</p>
+ <p class="err" id="cxMsg" role="alert"></p>
+ <div class="acts2"><button class="pillbtn alt" id="cxBack" type="button">Keep invoice</button><button class="pillbtn" id="cxOk" type="button">Cancel invoice</button></div>
+</div></dialog>
+<dialog id="peDialog"><div class="modal"><h2>EDIT PAYMENT</h2>
+ <p id="peInfo" style="font-size:13px;margin:0 0 10px;font-weight:700"></p>
+ <div class="meth"><button type="button" data-pe="CASH" aria-pressed="false">Cash</button><button type="button" data-pe="BANKAK" aria-pressed="false">Bankak</button><button type="button" data-pe="O-CASH" aria-pressed="false">O-Cash</button></div>
+ <div id="peRows"></div>
+ <div class="rem" id="peRemBox">Remaining: <b id="peRem">0</b></div>
+ <p class="err" id="peMsg" role="alert"></p>
+ <div class="acts2"><button class="pillbtn alt" id="peCancel" type="button">Cancel</button><button class="pillbtn" id="peOk" type="button">Save</button></div>
+</div></dialog>
 <dialog id="epDialog"><div class="modal"><h2>EDIT PRICE</h2>
  <input class="fld" id="epQ" type="search" placeholder="Search the product…" autocomplete="off">
  <div class="box" id="epResults" hidden style="max-height:170px;overflow:auto"></div>
@@ -199,6 +221,7 @@ const ICON={
  moon:svg('<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>'),
  sun:svg('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'),
  menu:svg('<path d="M3 6h18M3 12h18M3 18h18"/>'),
+ pen:svg('<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>'),
  fp:svg('<path d="M12 11v2.5c0 2.2-.5 4.3-1.5 6.2"/><path d="M8.5 11.5a3.5 3.5 0 0 1 7 0v1.2c0 1.9-.3 3.7-.9 5.3"/><path d="M5.5 11.5a6.5 6.5 0 0 1 13 0v1c0 1.5-.1 2.9-.4 4.2"/><path d="M3 14c.4-1.4.5-2.6.5-4a8.5 8.5 0 0 1 17 0"/><path d="M8 21c.6-1.1 1-2.3 1.2-3.5"/>'),
  gear:svg('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>')
 };
@@ -244,19 +267,19 @@ function renderResults(){
 $('q').addEventListener('input',renderResults);
 // ---- Cart ----
 const cart=new Map();
-const cartTotal=()=>{let s=0;cart.forEach(l=>{s+=(Number(l.p.price)||0)*l.q});return s};
-function addToCart(p){const l=cart.get(p.id);if(l)l.q++;else cart.set(p.id,{p,q:1});renderCart()}
+const cartTotal=()=>{let s=0;cart.forEach(l=>{s+=(Number(l.price)||0)*l.q});return s};
+function addToCart(p){const l=cart.get(p.id);if(l)l.q++;else cart.set(p.id,{p,q:1,price:Number(p.price)||0,orig:Number(p.price)||0});renderCart()}
 function renderCart(){
  const box=$('cart');box.innerHTML='';let count=0;
  cart.forEach(l=>{count+=l.q});
  if(!cart.size)box.innerHTML='<div class="empty">Cart is empty. Tap a product to add it.</div>';
  cart.forEach((l,id)=>{
   const r=document.createElement('div');r.className='ci';
-  const n=document.createElement('div');n.className='n';const b=document.createElement('b');b.textContent=l.p.name;const s=document.createElement('small');s.textContent=money(l.p.price);n.append(b,s);
+  const n=document.createElement('div');n.className='n';const b=document.createElement('b');b.textContent=l.p.name;const s=document.createElement('button');s.type='button';s.className='pr'+(l.price!==l.orig?' edited':'');s.textContent=(l.price>0?money(l.price):'Set price')+(l.price!==l.orig&&l.orig>0?' (list '+money(l.orig)+')':'');s.insertAdjacentHTML('beforeend',ICON.pen);s.onclick=()=>openLinePrice(l);n.append(b,s);
   const m=document.createElement('button');m.className='q';m.type='button';m.textContent='−';m.setAttribute('aria-label','Decrease');m.onclick=()=>{l.q>1?l.q--:cart.delete(id);renderCart()};
   const c=document.createElement('span');c.className='qn';c.textContent=l.q;
   const a=document.createElement('button');a.className='q';a.type='button';a.textContent='+';a.setAttribute('aria-label','Increase');a.onclick=()=>{l.q++;renderCart()};
-  const t=document.createElement('span');t.className='lt';t.textContent=money((Number(l.p.price)||0)*l.q);
+  const t=document.createElement('span');t.className='lt';t.textContent=money((Number(l.price)||0)*l.q);
   r.append(n,m,c,a,t);box.appendChild(r)});
  $('cartTitle').textContent='CART'+(count?' ('+count+')':'');$('total').textContent=money(cartTotal());
  $('pay').textContent=cart.size?'Pay '+money(cartTotal()):'Pay';
@@ -286,18 +309,19 @@ function buildPayRows(){
  updateRem();
 }
 function refit(){const s=sel(),t=cartTotal();if(s.length===1)pay[s[0]].amount=t;else s.forEach((m,i)=>pay[m].amount=i?0:t);buildPayRows()}
-document.querySelectorAll('.meth button').forEach(b=>b.onclick=()=>{
+document.querySelectorAll('button[data-m]').forEach(b=>b.onclick=()=>{
  const m=b.dataset.m,t=cartTotal();
  if(!pay[m].on){const others=paid();pay[m].on=true;pay[m].amount=sel().length===1?t:Math.max(0,t-others)}
  else{pay[m].on=false;pay[m].amount=0;if(m==='BANKAK')bankakId='';const s=sel();if(s.length===1)pay[s[0]].amount=t}
- document.querySelectorAll('.meth button').forEach(x=>x.setAttribute('aria-pressed',String(pay[x.dataset.m].on)));
+ document.querySelectorAll('button[data-m]').forEach(x=>x.setAttribute('aria-pressed',String(pay[x.dataset.m].on)));
  buildPayRows();
 });
-function resetInvoice(){cart.clear();METHODS.forEach(m=>{pay[m].on=false;pay[m].amount=0});bankakId='';$('q').value='';renderResults();document.querySelectorAll('.meth button').forEach(x=>x.setAttribute('aria-pressed','false'));renderCart()}
+function resetInvoice(){cart.clear();METHODS.forEach(m=>{pay[m].on=false;pay[m].amount=0});bankakId='';$('q').value='';renderResults();document.querySelectorAll('button[data-m]').forEach(x=>x.setAttribute('aria-pressed','false'));renderCart()}
 $('pay').onclick=()=>{
  if(saving)return;
  const msg=t=>{$('payMsg').textContent=t},total=cartTotal();
  if(!cart.size){msg('Add at least one product first.');return}
+ const bad=[...cart.values()].find(l=>!(l.price>0));if(bad){msg('Set a price for: '+bad.p.name);return}
  const used=sel().filter(m=>pay[m].amount>0);
  if(!used.length){msg('Choose a payment method and enter the amount.');return}
  if(sel().some(m=>!(pay[m].amount>0))){msg('Enter an amount for every selected method, or unselect it.');return}
@@ -307,13 +331,13 @@ $('pay').onclick=()=>{
  let bid='';
  if(pay.BANKAK.on){bid=bankakId.trim();
   if(bid!==''&&!/^\d{4}$/.test(bid)){msg('Bankak ID must be exactly 4 digits, or leave it empty.');return}
-  if(bid!==''&&sales.some(s=>String(s.bankakTransactionId||'')===bid)){msg('This Bankak ID is already used. Enter a unique one.');return}}
+  if(bid!==''&&sales.some(s=>s.status!=='cancelled'&&String(s.bankakTransactionId||'')===bid)){msg('This Bankak ID is already used. Enter a unique one.');return}}
  const now=new Date(),invoice='INV-'+String(invoiceNo).padStart(4,'0');
  let newShift=null;if(!shift&&currentUser)newShift={id:'S'+Date.now(),startedAt:now.toISOString(),startedBy:currentUser.username,startedByName:currentUser.name,endedAt:null};
- const record={invoice,date:now.toLocaleDateString('en-CA'),time:now.toLocaleTimeString('en-GB'),total,paymentMethod:used.length===1?used[0]:'SPLIT',payments:used.map(m=>({method:m,amount:pay[m].amount})),bankakTransactionId:bid,cashier:currentUser?currentUser.username:'',ts:now.toISOString(),shiftId:(shift||newShift||{}).id||'',items:[...cart.values()].map(l=>({id:l.p.id,name:l.p.name,price:Number(l.p.price)||0,qty:l.q,lineTotal:(Number(l.p.price)||0)*l.q}))};
+ const record={invoice,date:now.toLocaleDateString('en-CA'),time:now.toLocaleTimeString('en-GB'),total,paymentMethod:used.length===1?used[0]:'SPLIT',payments:used.map(m=>({method:m,amount:pay[m].amount})),bankakTransactionId:bid,cashier:currentUser?currentUser.username:'',ts:now.toISOString(),shiftId:(shift||newShift||{}).id||'',items:[...cart.values()].map(l=>({id:l.p.id,name:l.p.name,price:l.price,origPrice:l.orig,edited:l.price!==l.orig,qty:l.q,lineTotal:l.price*l.q}))};
  saving=true;
  const fail=()=>{if(!saving)return;saving=false;msg('The invoice could not be saved. Try again.')};
- try{const tx=DB.transaction(['sales','meta','shifts'],'readwrite');if(newShift)tx.objectStore('shifts').put(newShift);tx.objectStore('sales').put(record);tx.objectStore('meta').put({key:'invoiceNo',value:invoiceNo+1});
+ try{const tx=DB.transaction(['sales','meta','shifts','audit'],'readwrite');if(newShift)tx.objectStore('shifts').put(newShift);tx.objectStore('sales').put(record);tx.objectStore('meta').put({key:'invoiceNo',value:invoiceNo+1});
   tx.oncomplete=()=>{saving=false;if(newShift){shift=newShift;shiftList.push(newShift)}sales.push(record);invoiceNo++;resetInvoice();notice('SALE SAVED','Invoice '+invoice+' has been saved.')};
   tx.onerror=fail;tx.onabort=fail}catch(e){fail()}
 };
@@ -443,7 +467,8 @@ $('xlsOk').onclick=async()=>{
 const PM={CASH:'Cash',BANKAK:'Bankak','O-CASH':'O-Cash'};
 const fmtDT=iso=>new Date(iso).toLocaleString('en-GB',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
 const payLabel=s=>s.payments.length===1?PM[s.payments[0].method]:s.payments.map(x=>PM[x.method]).join(' + ');
-const shiftSales=()=>shift?sales.filter(s=>s.shiftId===shift.id).sort((a,b)=>String(a.invoice).localeCompare(String(b.invoice))):[];
+const shiftCancelled=()=>shift?sales.filter(s=>s.shiftId===shift.id&&s.status==='cancelled'):[];
+const shiftSales=()=>shift?sales.filter(s=>s.shiftId===shift.id&&s.status!=='cancelled').sort((a,b)=>String(a.invoice).localeCompare(String(b.invoice))):[];
 function calcTotals(rows){const o={count:rows.length,total:0,CASH:0,BANKAK:0,'O-CASH':0};rows.forEach(s=>{o.total+=s.total;s.payments.forEach(p=>{o[p.method]+=p.amount})});return o}
 async function ensureShift(){
  if(shift||!currentUser)return;
@@ -470,27 +495,92 @@ function renderReports(){
   [s.invoice,String(s.time||'').slice(0,5),payLabel(s)].forEach(x=>{const e=document.createElement('span');e.textContent=x;r.appendChild(e)});
   const b=document.createElement('b');b.textContent=money(s.total);r.appendChild(b);
   r.onclick=()=>{openInv=openInv===s.invoice?'':s.invoice;renderReports()};w.appendChild(r);
-  if(openInv===s.invoice){
-   const d=document.createElement('div');d.className='det';d.onclick=e=>e.stopPropagation();
-   const l1=document.createElement('div');l1.innerHTML='Date: <b></b> · Cashier: <b></b>';l1.querySelectorAll('b')[0].textContent=s.date;l1.querySelectorAll('b')[1].textContent=s.cashier||'-';d.appendChild(l1);
-   s.payments.forEach(p=>{const l=document.createElement('div');l.textContent=PM[p.method]+': '+money(p.amount);d.appendChild(l)});
-   if(s.payments.some(p=>p.method==='BANKAK')){
-    if(s.bankakTransactionId){const l=document.createElement('div');l.innerHTML='Bankak ID: <b></b> (saved)';l.querySelector('b').textContent=s.bankakTransactionId;d.appendChild(l)}
-    else{const bi=document.createElement('div');bi.className='bi';const inp=document.createElement('input');inp.type='text';inp.inputMode='numeric';inp.maxLength=4;inp.placeholder='Add Bankak ID (4 digits)';inp.oninput=()=>{inp.value=inp.value.replace(/\D/g,'').slice(0,4)};
-     const sv=document.createElement('button');sv.type='button';sv.textContent='Save';
-     sv.onclick=async()=>{const id=inp.value.trim();
-      if(!/^\d{4}$/.test(id)){notice('BANKAK ID','Enter exactly 4 digits.');return}
-      if(sales.some(x=>x!==s&&String(x.bankakTransactionId||'')===id)){notice('BANKAK ID','This Bankak ID is already used. Enter a unique one.');return}
-      try{await new Promise((res,rej)=>{const tx=DB.transaction(['sales','audit'],'readwrite');tx.objectStore('sales').put({...s,bankakTransactionId:id});tx.objectStore('audit').add({time:new Date().toISOString(),user:currentUser?currentUser.username:'',action:'bankak_id_added',details:{invoice:s.invoice,id}});tx.oncomplete=res;tx.onerror=tx.onabort=()=>rej(tx.error)});s.bankakTransactionId=id;renderReports()}
-      catch(e){notice('BANKAK ID','Could not save. Try again.')}};
-     bi.append(inp,sv);d.appendChild(bi)}
-   }
-   w.appendChild(d);
-  }
+  if(openInv===s.invoice)w.appendChild(invDetails(s));
   tb.appendChild(w);
  });
  [['Invoices',String(tot.count)],['Cash',money(tot.CASH)],['Bankak',money(tot.BANKAK)],['O-Cash',money(tot['O-CASH'])]].forEach(([k,v])=>{const d=document.createElement('div');d.className='kv';d.innerHTML='<span></span><b></b>';d.children[0].textContent=k;d.children[1].textContent=v;tt.appendChild(d)});
  const g=document.createElement('div');g.className='kv t';g.innerHTML='<span>Shift total</span><b></b>';g.children[1].textContent=money(tot.total);tt.appendChild(g);
+ const cx=shiftCancelled();if(cx.length){const h=document.createElement('div');h.className='hint';h.style.textAlign='left';h.textContent='Cancelled (not counted): '+cx.map(x=>x.invoice).join(' · ');tt.appendChild(h)}
+}
+// ---- Edit a line price in the sale, cancel an invoice, change a payment ----
+let lpLine=null;
+function openLinePrice(l){lpLine=l;$('lpName').textContent=l.p.name;$('lpList').textContent='List price: '+(l.orig>0?money(l.orig):'not set');$('lpPrice').value=l.price>0?String(l.price):'';$('lpMsg').textContent='';$('lpDialog').showModal()}
+$('lpCancel').onclick=()=>$('lpDialog').close();
+$('lpOk').onclick=()=>{const raw=$('lpPrice').value.trim(),v=Number(raw);if(raw===''||!Number.isFinite(v)||v<=0){$('lpMsg').textContent='Enter a price greater than zero.';return}lpLine.price=v;$('lpDialog').close();renderCart()};
+const dbWrite=(stores,fn)=>new Promise((res,rej)=>{const tx=DB.transaction(stores,'readwrite');fn(tx);tx.oncomplete=res;tx.onerror=tx.onabort=()=>rej(tx.error)});
+const auditAdd=(tx,action,details)=>tx.objectStore('audit').add({time:new Date().toISOString(),user:currentUser?currentUser.username:'',action,details});
+let cxInv=null;
+function openCancel(s){cxInv=s;$('cxInfo').textContent=s.invoice+' · '+money(s.total);$('cxMsg').textContent='';$('cxDialog').showModal()}
+$('cxBack').onclick=()=>$('cxDialog').close();
+$('cxOk').onclick=async()=>{
+ const s=cxInv;if(!s)return;
+ const f={status:'cancelled'};
+ try{await dbWrite(['sales'],tx=>{tx.objectStore('sales').put({...s,...f})});
+  Object.assign(s,f);openInv='';$('cxDialog').close();renderReports();notice('INVOICE CANCELLED',s.invoice+' was cancelled and removed from the shift totals.')}
+ catch(e){$('cxMsg').textContent='Could not cancel. Try again.'}
+};
+let peInv=null,pe={},peBid='',peLocked=false;
+const peSel=()=>METHODS.filter(m=>pe[m]&&pe[m].on);
+const pePaid=()=>peSel().reduce((s,m)=>s+(Number(pe[m].amount)||0),0);
+function peRem(){const r=peInv.total-pePaid();$('peRem').textContent=money(Math.abs(r)<1e-6?0:r);$('peRemBox').classList.toggle('bad',r<-1e-6);$('peMsg').textContent=''}
+function peBuild(){
+ const box=$('peRows');box.innerHTML='';
+ peSel().forEach(m=>{
+  const row=document.createElement('div');row.className='prow';const l=document.createElement('span');l.textContent=LABEL[m];
+  const i=document.createElement('input');i.type='number';i.min='0';i.step='any';i.inputMode='decimal';i.placeholder='0';i.dataset.pm=m;i.value=pe[m].amount?String(pe[m].amount):'';i.setAttribute('aria-label',LABEL[m]+' amount');
+  i.oninput=()=>{pe[m].amount=Number(i.value)||0;const s=peSel();if(s.length===2){const o=s.find(x=>x!==m);pe[o].amount=Math.max(0,peInv.total-pe[m].amount);const oi=box.querySelector('input[data-pm="'+o+'"]');if(oi)oi.value=pe[o].amount?String(pe[o].amount):''}peRem()};
+  row.append(l,i);box.appendChild(row);
+  if(m==='BANKAK'){const b=document.createElement('input');b.className='bid';b.type='text';b.inputMode='numeric';b.maxLength=4;b.placeholder='4-digit Bankak ID (optional)';b.value=peBid;b.disabled=peLocked;b.setAttribute('aria-label','Bankak ID');b.oninput=()=>{b.value=b.value.replace(/\D/g,'').slice(0,4);peBid=b.value;$('peMsg').textContent=''};box.appendChild(b)}
+ });
+ document.querySelectorAll('[data-pe]').forEach(x=>x.setAttribute('aria-pressed',String(!!(pe[x.dataset.pe]&&pe[x.dataset.pe].on))));peRem();
+}
+function openPayEdit(s){peInv=s;pe={};METHODS.forEach(m=>pe[m]={on:false,amount:0});s.payments.forEach(p=>{pe[p.method]={on:true,amount:p.amount}});peBid=s.bankakTransactionId||'';peLocked=!!s.bankakTransactionId;$('peInfo').textContent=s.invoice+' · Total '+money(s.total);$('peMsg').textContent='';peBuild();$('peDialog').showModal()}
+document.querySelectorAll('[data-pe]').forEach(b=>b.onclick=()=>{
+ const m=b.dataset.pe,t=peInv.total;
+ if(!pe[m].on){const others=pePaid();pe[m].on=true;pe[m].amount=peSel().length===1?t:Math.max(0,t-others)}
+ else{pe[m].on=false;pe[m].amount=0;const s=peSel();if(s.length===1)pe[s[0]].amount=t}
+ peBuild();
+});
+$('peCancel').onclick=()=>$('peDialog').close();
+$('peOk').onclick=async()=>{
+ const s=peInv,m=x=>{$('peMsg').textContent=x},sel=peSel();
+ if(!sel.length){m('Choose at least one payment method.');return}
+ if(sel.some(k=>!(pe[k].amount>0))){m('Enter an amount for every selected method, or unselect it.');return}
+ const diff=s.total-pePaid();
+ if(diff>1e-6){m('Remaining '+money(diff)+' must be assigned.');return}
+ if(diff<-1e-6){m('The amounts are more than the total by '+money(-diff)+'.');return}
+ let bid='';
+ if(pe.BANKAK.on){bid=peBid.trim();
+  if(bid!==''&&!/^\d{4}$/.test(bid)){m('Bankak ID must be exactly 4 digits, or leave it empty.');return}
+  if(bid!==''&&sales.some(x=>x!==s&&x.status!=='cancelled'&&String(x.bankakTransactionId||'')===bid)){m('This Bankak ID is already used. Enter a unique one.');return}}
+ const np=sel.map(k=>({method:k,amount:pe[k].amount})),from={payments:s.payments,bankakTransactionId:s.bankakTransactionId||''};
+ if(JSON.stringify(from.payments)===JSON.stringify(np)&&from.bankakTransactionId===bid){m('Nothing was changed.');return}
+ const f={payments:np,paymentMethod:np.length===1?np[0].method:'SPLIT',bankakTransactionId:bid};
+ try{await dbWrite(['sales'],tx=>{tx.objectStore('sales').put({...s,...f})});
+  Object.assign(s,f);$('peDialog').close();renderReports();notice('PAYMENT UPDATED',s.invoice+' → '+payLabel(s))}
+ catch(e){m('Could not save. Try again.')}
+};
+function invDetails(s){
+ const d=document.createElement('div');d.className='det';d.onclick=e=>e.stopPropagation();
+ const line=(label,val)=>{const l=document.createElement('div');l.appendChild(document.createTextNode(label));if(val!==undefined){const b=document.createElement('b');b.textContent=val;l.appendChild(b)}d.appendChild(l)};
+ line('Date: ',s.date+' · Cashier: '+(s.cashier||'-'));
+ (s.items||[]).forEach(i=>{const l=document.createElement('div');l.textContent=i.qty+' × '+i.name+' @ '+money(i.price)+(i.edited?' (list '+money(i.origPrice)+')':'');d.appendChild(l)});
+ s.payments.forEach(p=>line(PM[p.method]+': ',money(p.amount)));
+ if(s.payments.some(p=>p.method==='BANKAK')){
+  if(s.bankakTransactionId)line('Bankak ID: ',s.bankakTransactionId+' (saved)');
+  else{const bi=document.createElement('div');bi.className='bi';const inp=document.createElement('input');inp.type='text';inp.inputMode='numeric';inp.maxLength=4;inp.placeholder='Add Bankak ID (4 digits)';inp.oninput=()=>{inp.value=inp.value.replace(/\D/g,'').slice(0,4)};
+   const sv=document.createElement('button');sv.type='button';sv.textContent='Save';
+   sv.onclick=async()=>{const id=inp.value.trim();
+    if(!/^\d{4}$/.test(id)){notice('BANKAK ID','Enter exactly 4 digits.');return}
+    if(sales.some(x=>x!==s&&x.status!=='cancelled'&&String(x.bankakTransactionId||'')===id)){notice('BANKAK ID','This Bankak ID is already used. Enter a unique one.');return}
+    try{await dbWrite(['sales'],tx=>{tx.objectStore('sales').put({...s,bankakTransactionId:id})});s.bankakTransactionId=id;renderReports()}
+    catch(e){notice('BANKAK ID','Could not save. Try again.')}};
+   bi.append(inp,sv);d.appendChild(bi)}
+ }
+ const act=document.createElement('div');act.className='dact';
+ const e1=document.createElement('button');e1.type='button';e1.textContent='Edit payment';e1.onclick=()=>openPayEdit(s);
+ const e2=document.createElement('button');e2.type='button';e2.className='x2';e2.textContent='Cancel invoice';e2.onclick=()=>openCancel(s);
+ act.append(e1,e2);d.appendChild(act);return d;
 }
 // --- minimal PDF writer (standard fonts, ASCII text) ---
 const pdfEsc=s=>String(s).replace(/[^\x20-\x7E]/g,'?').replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');
@@ -525,7 +615,9 @@ function shiftPdf(sh,rows){
  if(sh.endedBy&&sh.endedBy!==sh.startedBy){T('Ended by: '+sh.endedBy,40,y,11);y-=15}
  y-=8;ops.push({line:true,x1:40,x2:555,y});y-=18;
  [['Invoices',String(tot.count)],['Cash',money(tot.CASH)],['Bankak',money(tot.BANKAK)],['O-Cash',money(tot['O-CASH'])]].forEach(([k,v])=>{T(k,40,y,11);T(v,555,y,11,false,'right');y-=15});
- T('Shift total',40,y-2,13,true);T(money(tot.total),555,y-2,13,true,'right');y-=30;
+ T('Shift total',40,y-2,13,true);T(money(tot.total),555,y-2,13,true,'right');
+ const cxN=sales.filter(s=>s.shiftId===sh.id&&s.status==='cancelled').length;if(cxN){T('Cancelled invoices (not counted): '+cxN,40,y-20,10);y-=16}
+ y-=30;
  const head=()=>{T('INVOICE',40,y,10,true);T('TIME',140,y,10,true);T('PAYMENT',215,y,10,true);T('TOTAL',555,y,10,true,'right');y-=6;ops.push({line:true,x1:40,x2:555,y});y-=15};
  head();
  if(!rows.length){T('No invoices in this shift.',40,y,11)}
